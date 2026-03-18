@@ -24,7 +24,8 @@ EduAdmit Pro is a modern, comprehensive web application designed to streamline t
 
 -   **Backend**: [Laravel 11](https://laravel.com) (PHP 8.2+)
 -   **Database**: MySQL / PostgreSQL
--   **Frontend**: [Blade Templates](https://laravel.com/docs/blade), [Tailwind CSS 4.0](https://tailwindcss.com), [Vite](https://vitejs.dev)
+-   **Frontend**: [Blade Templates](https://laravel.com/docs/blade), [Bootstrap 5](https://getbootstrap.com), [Vite](https://vitejs.dev)
+-   **Typography**: [Poppins Font](https://fonts.google.com/specimen/Poppins)
 -   **Reports**: [DomPDF](https://github.com/barryvdh/laravel-dompdf) for PDF and [Laravel Excel](https://laravel-excel.com) for data exports.
 -   **Authentication**: Multi-tier role-based access control (RBAC) specifically designed for Admins, Departments, and Students.
 
