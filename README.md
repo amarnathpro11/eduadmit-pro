@@ -63,9 +63,8 @@ EduAdmit Pro is a modern, comprehensive web application designed to streamline t
     ```
 
 5.  **Compile Assets & Run Local Server**
-    `bash
+    ```bash
     npm run dev
     # In a separate terminal
     php artisan serve
-    `
-    _Built with ❤️ for educational institutions._
+    ```
