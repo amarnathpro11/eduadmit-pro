@@ -1,6 +1,6 @@
 # EduAdmit Pro - College Admission & Lead Management System
 
-EduAdmit Pro is a modern, comprehensive web application designed to streamline the college admission process, from initial lead capture to final student enrollment. Built with **Laravel 11**, **Tailwind CSS**, and **Vite**, it provides a seamless experience for both administrators and students.
+EduAdmit Pro is a modern, comprehensive web application designed to streamline the college admission process, from initial lead capture to final student enrollment. Built with **Laravel 11**, **Bootstrap 5** it provides a seamless experience for both administrators and students.
 
 ## 🚀 Key Features
 
@@ -25,7 +25,7 @@ EduAdmit Pro is a modern, comprehensive web application designed to streamline t
 ## 🛠️ Technology Stack
 
 - **Backend**: [Laravel 11](https://laravel.com) (PHP 8.2+)
-- **Database**: MySQL / PostgreSQL
+- **Database**: MySQL
 - **Frontend**: [Blade Templates](https://laravel.com/docs/blade), [Bootstrap 5](https://getbootstrap.com), [Vite](https://vitejs.dev)
 - **Typography**: [Poppins Font](https://fonts.google.com/specimen/Poppins)
 - **Reports**: [DomPDF](https://github.com/barryvdh/laravel-dompdf) for PDF and [Laravel Excel](https://laravel-excel.com) for data exports.
