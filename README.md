@@ -25,46 +25,40 @@ EduAdmit Pro is a modern, comprehensive web application designed to streamline t
 ## 🛠️ Technology Stack
 
 - **Backend**: [Laravel 11](https://laravel.com) (PHP 8.2+)
-- **Database**: MySQL
-- **Frontend**: [Blade Templates](https://laravel.com/docs/blade), [Bootstrap 5](https://getbootstrap.com), [Vite](https://vitejs.dev)
-- **Typography**: [Poppins Font](https://fonts.google.com/specimen/Poppins)
+- **Database**: [MySQL](https://www.mysql.com/)
+- **Payments**: [Razorpay Integration](https://razorpay.com/) for secure fee processing.
+- **Email**: [Mailtrap](https://mailtrap.io/) for development testing & Email Previewing.
+- **Frontend**: [Blade Templates](https://laravel.com/docs/blade), [Bootstrap 5](https://getbootstrap.com) (via CDN).
+- **Typography**: [Poppins Font](https://fonts.google.com/specimen/Poppins) & [Inter](https://fonts.google.com/specimen/Inter).
 - **Reports**: [DomPDF](https://github.com/barryvdh/laravel-dompdf) for PDF and [Laravel Excel](https://laravel-excel.com) for data exports.
-- **Authentication**: Multi-tier role-based access control (RBAC) specifically designed for Admins, Departments, and Students.
+- **Authentication**: Multi-tier role-based access control (RBAC).
 
 ## 📦 Installation & Setup
 
 1.  **Clone the Repository**
-
     ```bash
     git clone https://github.com/amarnathpro11/eduadmit-pro.git
     cd eduadmit-pro
     ```
 
 2.  **Install Dependencies**
-
     ```bash
     composer install
-    npm install
     ```
 
 3.  **Environment Configuration**
-
     ```bash
     cp .env.example .env
     php artisan key:generate
     ```
-
-    _Update your `.env` file with your database credentials and mail settings._
+    _Update your `.env` file with your Database, Razorpay, and Mailtrap credentials._
 
 4.  **Database Setup**
-
     ```bash
     php artisan migrate --seed
     ```
 
-5.  **Compile Assets & Run Local Server**
+5.  **Run Local Server**
     ```bash
-    npm run dev
-    # In a separate terminal
     php artisan serve
     ```
