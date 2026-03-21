@@ -3,7 +3,7 @@
 @section('content')
     <div class="container-fluid">
         {{-- Header --}}
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
             <div>
                 <h2 class="text-white fw-bold mb-1">Lead Management</h2>
                 <p class="text-secondary mb-0">Track, score, and convert prospective students with ease.</p>
@@ -150,7 +150,9 @@
                                         </div>
                                         <div>
                                             <div class="text-white fw-bold fs-6 d-flex align-items-center gap-2">
-                                                {{ $lead->name }}
+                                                <a href="{{ route('admin.leads.show', $lead->id) }}" class="text-white text-decoration-none hover-primary">
+                                                    {{ $lead->name }}
+                                                </a>
                                                 @if($lead->is_registered)
                                                     <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25" style="font-size: 0.6rem;">Registered</span>
                                                 @endif
@@ -179,13 +181,13 @@
                                     @php
                                         $scoreColor = 'danger';
                                         $scoreLabel = 'Low';
-                                        if ($lead->score >= 80) {
+                                        if ($lead->lead_score >= 80) {
                                             $scoreColor = 'success';
                                             $scoreLabel = 'Hot';
-                                        } elseif ($lead->score >= 50) {
+                                        } elseif ($lead->lead_score >= 50) {
                                             $scoreColor = 'warning';
                                             $scoreLabel = 'Moderate';
-                                        } elseif ($lead->score >= 30) {
+                                        } elseif ($lead->lead_score >= 30) {
                                             $scoreColor = 'primary';
                                             $scoreLabel = 'Priority';
                                         }
@@ -193,11 +195,11 @@
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <small class="text-{{ $scoreColor }} fw-bold"
                                             style="letter-spacing: 0.5px;">{{ $scoreLabel }}</small>
-                                        <small class="text-secondary small fw-bold">{{ $lead->score }}%</small>
+                                        <small class="text-secondary small fw-bold">{{ $lead->lead_score }}%</small>
                                     </div>
                                     <div class="progress bg-white bg-opacity-5" style="height: 7px; border-radius: 10px;">
                                         <div class="progress-bar bg-{{ $scoreColor }}" role="progressbar"
-                                            style="width: {{ $lead->score }}%" aria-valuenow="{{ $lead->score }}"
+                                            style="width: {{ $lead->lead_score }}%" aria-valuenow="{{ $lead->lead_score }}"
                                             aria-valuemin="0" aria-valuemax="100"></div>
                                     </div>
                                 </td>
@@ -269,7 +271,7 @@
                             </div>
                             <div class="col-md-6 text-start">
                                 <label class="form-label small text-secondary fw-bold">EMAIL ADDRESS</label>
-                                <input type="email" name="email" class="form-control bg-dark text-white border-white border-opacity-10 py-2" placeholder="john@example.com" required>
+                                <input type="email" name="email" class="form-control bg-dark text-white border-white border-opacity-10 py-2" placeholder="john@example.com">
                             </div>
                             <div class="col-md-6 text-start">
                                 <label class="form-label small text-secondary fw-bold">PHONE NUMBER</label>
@@ -287,7 +289,7 @@
                             </div>
                             <div class="col-md-6 text-start">
                                 <label class="form-label small text-secondary fw-bold">INTERESTED COURSE</label>
-                                <select name="course_id" class="form-select bg-dark text-white border-white border-opacity-10 py-2" required>
+                                <select name="course_interested" class="form-select bg-dark text-white border-white border-opacity-10 py-2" required>
                                     <option value="">Select Course</option>
                                     @foreach($courses as $course)
                                         <option value="{{ $course->id }}">{{ $course->name }} ({{ $course->code }})</option>
@@ -313,7 +315,11 @@
                             </div>
                             <div class="col-md-6 text-start">
                                 <label class="form-label small text-secondary fw-bold">LEAD SCORE (0-100)</label>
-                                <input type="number" name="score" class="form-control bg-dark text-white border-white border-opacity-10 py-2" value="20" min="0" max="100" required>
+                                <input type="number" name="lead_score" class="form-control bg-dark text-white border-white border-opacity-10 py-2" value="20" min="0" max="100" required>
+                            </div>
+                            <div class="col-12 text-start">
+                                <label class="form-label small text-secondary fw-bold">NOTES (OPTIONAL)</label>
+                                <textarea name="notes" class="form-control bg-dark text-white border-white border-opacity-10 py-2" rows="3" placeholder="Any extra info counselor adds..."></textarea>
                             </div>
                         </div>
                     </div>

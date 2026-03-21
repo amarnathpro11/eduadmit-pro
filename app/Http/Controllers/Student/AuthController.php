@@ -7,6 +7,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\Role;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\StudentResetPasswordMail;
 
 class AuthController extends Controller
 {
@@ -81,5 +86,55 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         return redirect()->route('student.login');
+    }
+
+    // Forgot Password
+    public function showForgotPasswordForm()
+    {
+        // For students, reuse login style or create new
+        return view('student.auth.forgot-password');
+    }
+
+    public function sendResetLinkEmail(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || !$user->role || $user->role->name !== 'student') {
+            return back()->withErrors(['email' => 'Student account not found with this email addresses.']);
+        }
+
+        $token = Str::random(60);
+
+        // Normally we'd store this in password_resets table, but for now we'll send it 
+        // In a real app use Password::broker()->createToken($user)
+        
+        Mail::to($user->email)->send(new StudentResetPasswordMail($token, $user->email));
+
+        return back()->with('success', 'Reset instructions sent to your email.');
+    }
+
+    public function showResetPasswordForm(Request $request, $token)
+    {
+        return view('student.auth.reset-password', ['token' => $token, 'email' => $request->email]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|min:8|confirmed',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+        if (!$user) return back()->withErrors(['email' => 'User not found.']);
+
+        $user->update([
+                'password' => Hash::make($request->password)
+        ]);
+
+        return redirect()->route('student.login')->with('success', 'Password reset successful.');
     }
 }

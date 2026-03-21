@@ -168,9 +168,10 @@
                 </div>
             @else
                 <div class="premium-card">
-                    <div class="d-flex justify-content-between align-items-center mb-5">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-5 gap-4">
                         <div class="d-flex align-items-center gap-3">
                             <div
+                                class="flex-shrink-0"
                                 style="width: 48px; height: 48px; background: rgba(99, 102, 241, 0.1); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: #6366f1;">
                                 <i data-lucide="clipboard-check" style="width: 24px;"></i>
                             </div>

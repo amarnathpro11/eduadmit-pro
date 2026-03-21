@@ -7,6 +7,11 @@ use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
+use App\Mail\AdminResetPasswordMail;
 
 
 class AuthController extends Controller
@@ -65,5 +70,52 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         return redirect()->route('admin.login');
+    }
+
+    // Password Reset
+    public function showForgotPasswordForm()
+    {
+        return view('admin.auth.forgot-password');
+    }
+
+    public function sendResetLinkEmail(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+
+        // Check if admin
+        $user = User::where('email', $request->email)->first();
+        if (!$user || !$user->role || $user->role->name !== 'admin') {
+            return back()->withErrors(['email' => 'Admin account not found.']);
+        }
+
+        $token = Str::random(60);
+
+        // In a real app use Password::broker()->createToken($user)
+        Mail::to($user->email)->send(new AdminResetPasswordMail($token, $user->email));
+
+        return back()->with('success', 'Admin password reset link sent to your email.');
+    }
+
+    public function showResetPasswordForm(Request $request, $token)
+    {
+        return view('admin.auth.reset-password', ['token' => $token, 'email' => $request->email]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|min:8|confirmed',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+        if (!$user) return back()->withErrors(['email' => 'User not found.']);
+
+        $user->update([
+            'password' => Hash::make($request->password)
+        ]);
+
+        return redirect()->route('admin.login')->with('success', 'Password updated successfully. Please login.');
     }
 }

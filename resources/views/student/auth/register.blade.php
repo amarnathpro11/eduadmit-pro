@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Registration | EduAdmit Pro</title>
     <!-- Google Fonts: Inter & Outfit -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;700&display=swap"
+        rel="stylesheet">
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Lucide Icons -->
@@ -131,26 +134,27 @@
         .right-panel {
             flex: 0 0 45%;
             background-color: var(--bg-form);
-            padding: 3rem;
+            padding: 4rem 3rem;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             overflow-y: auto;
         }
 
         .back-link {
             color: var(--text-muted);
             text-decoration: none;
-            font-size: 0.9rem;
-            display: flex;
+            font-size: 0.95rem;
+            font-weight: 500;
+            display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 2.5rem;
-            transition: color 0.2s;
+            gap: 0.6rem;
+            margin-bottom: 3rem;
+            transition: all 0.2s;
         }
 
         .back-link:hover {
-            color: #ffffff;
+            color: var(--accent-green);
+            transform: translateX(-4px);
         }
 
         .welcome-head h2 {
@@ -211,6 +215,32 @@
             color: #4b5563;
         }
 
+        .password-toggle {
+            position: absolute;
+            right: 0.75rem;
+            top: 0;
+            height: 100%;
+            width: 3rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+            z-index: 10;
+        }
+
+        .password-toggle:hover {
+            color: var(--accent-green);
+        }
+
+        .form-control-custom {
+            padding-right: 3.5rem;
+        }
+
         .btn-register {
             background: linear-gradient(90deg, #10b981 0%, #059669 100%);
             border: none;
@@ -235,118 +265,155 @@
 
         /* Mobile Responsive */
         @media (max-width: 992px) {
-            .left-panel { display: none; }
-            .right-panel { flex: 0 0 100%; padding: 2rem; }
+            .left-panel {
+                display: none;
+            }
+
+            .right-panel {
+                flex: 0 0 100%;
+                padding: 2rem;
+            }
         }
     </style>
 </head>
+
 <body>
 
-<div class="register-container">
-    <!-- Left Panel -->
-    <div class="left-panel">
-        <div class="brand-section">
-            <h1 class="brand-title">EduAdmit<br><span>Pro</span></h1>
-            <p class="brand-subtitle">Student Registration</p>
+    <div class="register-container">
+        <!-- Left Panel -->
+        <div class="left-panel">
+            <div class="brand-section">
+                <h1 class="brand-title">EduAdmit<br><span>Pro</span></h1>
+                <p class="brand-subtitle">Student Registration</p>
+            </div>
+
+            <div class="features-list">
+                <div class="feature-card active">
+                    <div class="feature-icon">
+                        <i data-lucide="user-plus"></i>
+                    </div>
+                    <div class="feature-info">
+                        <h5>Quick Account</h5>
+                        <p>Start your application process in seconds</p>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i data-lucide="check-circle"></i>
+                    </div>
+                    <div class="feature-info">
+                        <h5>Instant Confirmation</h5>
+                        <p>Receive immediate updates on your status</p>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i data-lucide="shield-check"></i>
+                    </div>
+                    <div class="feature-info">
+                        <h5>Secure Platform</h5>
+                        <p>Your documents and payments are always safe</p>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="features-list">
-            <div class="feature-card active">
-                <div class="feature-icon">
-                    <i data-lucide="user-plus"></i>
-                </div>
-                <div class="feature-info">
-                    <h5>Quick Account</h5>
-                    <p>Start your application process in seconds</p>
-                </div>
+        <!-- Right Panel -->
+        <div class="right-panel">
+            <a href="{{ route('student.login') }}" class="back-link">
+                <i data-lucide="arrow-left" style="width: 18px;"></i>
+                Back to login
+            </a>
+
+            <div class="welcome-head">
+                <h2>Create Account 🚀</h2>
+                <p>Join EduAdmit Pro and begin your journey</p>
             </div>
 
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i data-lucide="check-circle"></i>
-                </div>
-                <div class="feature-info">
-                    <h5>Instant Confirmation</h5>
-                    <p>Receive immediate updates on your status</p>
-                </div>
-            </div>
+            <form method="POST" action="{{ route('student.register') }}">
+                @csrf
 
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i data-lucide="shield-check"></i>
+                <div class="mb-3">
+                    <label class="form-label">Full Name</label>
+                    <div class="input-group-custom">
+                        <i data-lucide="user" style="width: 20px;"></i>
+                        <input type="text" name="name" class="form-control-custom"
+                            placeholder="Enter your full name" required>
+                    </div>
                 </div>
-                <div class="feature-info">
-                    <h5>Secure Platform</h5>
-                    <p>Your documents and payments are always safe</p>
+
+                <div class="mb-3">
+                    <label class="form-label">Email Address</label>
+                    <div class="input-group-custom">
+                        <i data-lucide="mail" style="width: 20px;"></i>
+                        <input type="email" name="email" class="form-control-custom" placeholder="Enter your email"
+                            required>
+                    </div>
                 </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <div class="input-group-custom">
+                        <i data-lucide="lock" style="width: 20px;"></i>
+                        <input type="password" name="password" id="password" class="form-control-custom"
+                            placeholder="Min. 8 characters" required>
+                        <button type="button" class="password-toggle" data-toggle-for="password">
+                            <i data-lucide="eye" style="width: 20px;"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Confirm Password</label>
+                    <div class="input-group-custom">
+                        <i data-lucide="shield-check" style="width: 20px;"></i>
+                        <input type="password" name="password_confirmation" id="password_confirmation"
+                            class="form-control-custom" placeholder="Repeat password" required>
+                        <button type="button" class="password-toggle" data-toggle-for="password_confirmation">
+                            <i data-lucide="eye" style="width: 20px;"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-register">
+                    Register Now &rarr;
+                </button>
+            </form>
+
+            <div class="text-center mt-4">
+                <p style="color: var(--text-muted); font-size: 0.9rem;">
+                    Already have an account? <a href="{{ route('student.login') }}"
+                        style="color: var(--accent-green); text-decoration: none;">Sign in instead</a>
+                </p>
             </div>
         </div>
     </div>
 
-    <!-- Right Panel -->
-    <div class="right-panel">
-        <a href="{{ route('student.login') }}" class="back-link">
-            <i data-lucide="arrow-left" style="width: 18px;"></i>
-            Back to login
-        </a>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
 
-        <div class="welcome-head">
-            <h2>Create Account 🚀</h2>
-            <p>Join EduAdmit Pro and begin your journey</p>
-        </div>
+        // Password visibility toggle logic
+        document.querySelectorAll('.password-toggle').forEach(button => {
+            button.addEventListener('click', () => {
+                const inputId = button.getAttribute('data-toggle-for');
+                const input = document.getElementById(inputId);
+                const icon = button.querySelector('i');
 
-        <form method="POST" action="{{ route('student.register') }}">
-            @csrf
-
-            <div class="mb-3">
-                <label class="form-label">Full Name</label>
-                <div class="input-group-custom">
-                    <i data-lucide="user" style="width: 20px;"></i>
-                    <input type="text" name="name" class="form-control-custom" placeholder="John Doe" required>
-                </div>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Email Address</label>
-                <div class="input-group-custom">
-                    <i data-lucide="mail" style="width: 20px;"></i>
-                    <input type="email" name="email" class="form-control-custom" placeholder="john@example.com" required>
-                </div>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Password</label>
-                <div class="input-group-custom">
-                    <i data-lucide="lock" style="width: 20px;"></i>
-                    <input type="password" name="password" class="form-control-custom" placeholder="Min. 8 characters" required>
-                </div>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Confirm Password</label>
-                <div class="input-group-custom">
-                    <i data-lucide="shield-check" style="width: 20px;"></i>
-                    <input type="password" name="password_confirmation" class="form-control-custom" placeholder="Repeat password" required>
-                </div>
-            </div>
-
-            <button type="submit" class="btn-register">
-                Register Now &rarr;
-            </button>
-        </form>
-
-        <div class="text-center mt-4">
-            <p style="color: var(--text-muted); font-size: 0.9rem;">
-                Already have an account? <a href="{{ route('student.login') }}" style="color: var(--accent-green); text-decoration: none;">Sign in instead</a>
-            </p>
-        </div>
-    </div>
-</div>
-
-<script>
-    // Initialize Lucide icons
-    lucide.createIcons();
-</script>
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    button.innerHTML = '<i data-lucide="eye-off" style="width: 20px;"></i>';
+                } else {
+                    input.type = 'password';
+                    button.innerHTML = '<i data-lucide="eye" style="width: 20px;"></i>';
+                }
+                lucide.createIcons();
+            });
+        });
+    </script>
 
 </body>
+
 </html>

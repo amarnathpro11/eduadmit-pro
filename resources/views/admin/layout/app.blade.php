@@ -24,6 +24,7 @@
             font-family: 'Poppins', sans-serif;
             background: radial-gradient(circle at top, #0f172a, #020617);
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
         .wrapper {
@@ -39,9 +40,10 @@
             box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2);
             position: sticky;
             top: 0;
-            z-index: 1000;
+            z-index: 1050;
             display: flex;
             flex-direction: column;
+            transition: all 0.3s ease;
         }
 
         .sidebar h4 {
@@ -98,14 +100,36 @@
             background: radial-gradient(circle at top, #0f172a, #020617);
             min-height: 100vh;
             position: relative;
+            width: 100%;
+            transition: all 0.3s ease;
         }
 
         /* Topbar Alignment Fix */
         .topbar {
             display: flex;
             align-items: center;
-            gap: 20px;
+            justify-content: space-between;
+            gap: 15px;
             padding-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 576px) {
+            .topbar .search-container {
+                display: none !important;
+            }
+        }
+
+        /* Mobile Toggle */
+        .sidebar-toggle {
+            display: none;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            z-index: 1100;
         }
 
         /* Cards & Components */
@@ -199,7 +223,8 @@
             background: linear-gradient(145deg, #1e293b, #0f172a);
             padding: 35px;
             border-radius: 20px;
-            width: 500px;
+            width: 90%;
+            max-width: 500px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
             transform: scale(0.9);
             transition: 0.3s ease;
@@ -271,12 +296,6 @@
             box-shadow: none;
         }
 
-        .dark-card {
-            background: linear-gradient(145deg, #1e293b, #0f172a);
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
         /* User Dropdown Premium Styling */
         .dropdown-menu {
             background: #ffffff !important;
@@ -330,14 +349,59 @@
         .dropdown-toggle::after {
             display: none;
         }
+
+        /* Responsive Styles */
+        @media (max-width: 992px) {
+            .sidebar {
+                position: fixed;
+                left: -260px;
+                height: 100vh;
+                top: 0;
+            }
+
+            .sidebar.show {
+                left: 0;
+            }
+
+            .main {
+                padding: 0 15px 20px 15px;
+            }
+
+            .sidebar-toggle {
+                display: block;
+            }
+
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.5);
+                backdrop-filter: blur(4px);
+                z-index: 1040;
+            }
+
+            .sidebar-overlay.show {
+                display: block;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .topbar {
+                flex-wrap: wrap;
+            }
+            .user-profile-btn span {
+                display: none;
+            }
+        }
     </style>
 </head>
 
 <body>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <div class="wrapper">
         {{-- Sidebar --}}
-        <div class="sidebar">
-            <h4><i class="fa fa-university me-2 text-primary"></i> Admin Central</h4>
+        <div class="sidebar" id="sidebar">
+            <h4 class="mb-4"><i class="fa fa-university me-2 text-primary"></i> Admin Central</h4>
             <a href="{{ route('admin.dashboard') }}"
                 class="nav-link-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                 <i class="fa fa-chart-line"></i> Dashboard
@@ -352,7 +416,7 @@
             </a>
             <a href="{{ route('admin.follow_ups.index') }}"
                 class="nav-link-item {{ request()->routeIs('admin.follow_ups.index') ? 'active' : '' }}">
-                <i class="fa fa-calendar-check"></i> Follow-up Scheduling
+                <i class="fa fa-calendar-check"></i> Follow-ups
             </a>
             <a href="{{ route('admin.verification.index') }}"
                 class="nav-link-item {{ request()->routeIs('admin.verification.*') ? 'active' : '' }}"><i
@@ -372,10 +436,10 @@
             <hr>
             <a href="{{ route('admin.rules.index') }}"
                 class="nav-link-item {{ request()->routeIs('admin.rules.*') ? 'active' : '' }}"><i
-                    class="fa fa-cog"></i> Admission Rules & Quota Management</a>
+                    class="fa fa-cog"></i> Admission Rules</a>
             <a href="{{ route('admin.reports.index') }}"
                 class="nav-link-item {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}"><i
-                    class="fa fa-file"></i> Reports & Audit Logs</a>
+                    class="fa fa-file"></i> Reports & Logs</a>
 
             <div style="margin-top: auto; padding-top: 20px;">
                 <form method="POST" action="{{ route('admin.logout') }}">
@@ -390,9 +454,13 @@
         {{-- Main content --}}
         <div class="main">
             {{-- Topbar --}}
-            <div class="topbar justify-content-end mb-1">
+            <div class="topbar mb-4">
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fa fa-bars"></i>
+                </button>
+
                 {{-- User Profile --}}
-                <div class="dropdown">
+                <div class="dropdown ms-auto">
                     <a class="user-profile-btn d-flex align-items-center text-white text-decoration-none dropdown-toggle px-3 py-2 rounded-pill" 
                        href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" 
                        style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); transition: 0.2s;">
@@ -401,6 +469,7 @@
                             {{ strtoupper(substr(auth()->user()->name ?? 'A', 0, 1)) }}
                         </div>
                         <span class="fw-semibold me-1">{{ auth()->user()->name ?? 'Admin' }}</span>
+                        <i class="fa fa-chevron-down ms-1" style="font-size: 0.7rem; opacity: 0.7;"></i>
                     </a>
 
                     <ul class="dropdown-menu dropdown-menu-end">
@@ -445,12 +514,33 @@
                 </div>
             @endif
 
-            @yield('content')
+            <div class="container-fluid px-0">
+                @yield('content')
+            </div>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Sidebar Toggle Logic
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('show');
+                    sidebarOverlay.classList.toggle('show');
+                });
+            }
+
+            if (sidebarOverlay) {
+                sidebarOverlay.addEventListener('click', function() {
+                    sidebar.classList.remove('show');
+                    sidebarOverlay.classList.remove('show');
+                });
+            }
+
             const navLinks = document.querySelectorAll('.nav-link-item');
 
             navLinks.forEach(link => {
@@ -460,25 +550,20 @@
                         navLinks.forEach(l => l.classList.remove('active'));
                         this.classList.add('active');
                     }
+                    
+                    // Close sidebar on mobile after clicking a link
+                    if (window.innerWidth <= 992) {
+                        sidebar.classList.remove('show');
+                        sidebarOverlay.classList.remove('show');
+                    }
                 });
             });
 
             // Real-time Update Simulation
             function updateBadges() {
                 // This is where you would normally make an AJAX call or listen to a WebSocket
-                // Example: fetch('/admin/notifications/count').then(res => res.json()).then(data => ...)
-
-                // For now, we simulate "live" data
-                const notifBadge = document.getElementById('notification-badge');
-                const msgBadge = document.getElementById('message-badge');
-
-                if (notifBadge && msgBadge) {
-                    // You can hook this up to your actual backend logic
-                    // console.log('Updating counts...');
-                }
             }
 
-            // Run on load and every 60 seconds (or use Pusher for true real-time)
             updateBadges();
             setInterval(updateBadges, 60000);
         });

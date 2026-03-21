@@ -29,6 +29,13 @@ Route::prefix('admin')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->name('admin.login.submit');
     Route::post('/signup', [AuthController::class, 'signup'])->name('admin.signup.submit');
 
+    // Password Reset Routes
+    Route::get('/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('admin.password.request');
+    Route::post('/forgot-password', [AuthController::class, 'sendResetLinkEmail'])->name('admin.password.email');
+    Route::get('/reset-password/{token}', [AuthController::class, 'showResetPasswordForm'])->name('admin.password.reset');
+    Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('admin.password.update');
+
+
     Route::middleware([AdminMiddleware::class])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
         Route::get('/dashboard/download', [DashboardController::class, 'downloadSummary'])->name('admin.dashboard.download');
@@ -37,11 +44,13 @@ Route::prefix('admin')->group(function () {
         // Lead Management
         Route::get('/leads', [\App\Http\Controllers\Admin\LeadController::class, 'index'])->name('admin.leads.index');
         Route::post('/leads', [\App\Http\Controllers\Admin\LeadController::class, 'store'])->name('admin.leads.store');
-        
         // Lead Assignment & Allocation
         Route::get('/leads/assignment', [\App\Http\Controllers\Admin\LeadAssignmentController::class, 'index'])->name('admin.leads.assignment');
         Route::post('/leads/assign', [\App\Http\Controllers\Admin\LeadAssignmentController::class, 'assign'])->name('admin.leads.assign');
         Route::post('/leads/auto-assign', [\App\Http\Controllers\Admin\LeadAssignmentController::class, 'autoAssign'])->name('admin.leads.auto_assign');
+
+        Route::get('/leads/{lead}', [\App\Http\Controllers\Admin\LeadController::class, 'show'])->name('admin.leads.show');
+        Route::post('/leads/{lead}/communications', [\App\Http\Controllers\Admin\LeadController::class, 'storeCommunication'])->name('admin.leads.communications.store');
 
         // Profile & Settings
         Route::get('/profile', [ProfileController::class, 'index'])->name('admin.profile');
@@ -183,6 +192,13 @@ Route::prefix('student')->group(function () {
 
     Route::get('/register', [StudentAuthController::class, 'registerForm'])->name('student.register');
     Route::post('/register', [StudentAuthController::class, 'register']);
+
+    // Password Reset Routes
+    Route::get('/forgot-password', [StudentAuthController::class, 'showForgotPasswordForm'])->name('student.password.request');
+    Route::post('/forgot-password', [StudentAuthController::class, 'sendResetLinkEmail'])->name('student.password.email');
+    Route::get('/reset-password/{token}', [StudentAuthController::class, 'showResetPasswordForm'])->name('student.password.reset');
+    Route::post('/reset-password', [StudentAuthController::class, 'resetPassword'])->name('student.password.update');
+
 
     Route::middleware([StudentMiddleware::class])->group(function () {
 

@@ -72,22 +72,8 @@
             display: flex;
             flex-direction: column;
             padding: 2rem 1.5rem;
-            z-index: 1000;
-        }
-
-        /* Sidebar Styles */
-        .sidebar {
-            width: var(--sidebar-width);
-            background-color: var(--bg-sidebar);
-            height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            padding: 2rem 1.5rem;
-            z-index: 1000;
+            z-index: 1050;
+            transition: all 0.3s ease;
         }
 
         .sidebar-brand {
@@ -190,6 +176,7 @@
             padding: 0;
             min-height: 100vh;
             background: transparent !important;
+            transition: all 0.3s ease;
         }
 
         .top-nav {
@@ -370,55 +357,63 @@
             box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
         }
 
-        .btn-premium-primary {
-            background: linear-gradient(135deg, #6366f1, #4f46e5);
-            border: none;
-            border-radius: 14px;
-            padding: 1rem;
+        /* Mobile Sidebar Toggle */
+        .sidebar-toggle-btn {
+            display: none;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             color: white;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
         }
 
-        .btn-premium-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1040;
         }
 
-        .btn-premium-outline {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1.5px solid rgba(255, 255, 255, 0.1);
-            border-radius: 14px;
-            padding: 0.85rem 1.5rem;
-            color: #ffffff;
-            font-weight: 600;
-            transition: all 0.2s;
+        @media (max-width: 992px) {
+            .sidebar {
+                left: calc(var(--sidebar-width) * -1);
+            }
+            .sidebar.active {
+                left: 0;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .sidebar-toggle-btn {
+                display: flex;
+            }
+            .sidebar-overlay.active {
+                display: block;
+            }
+            .search-input {
+                width: 150px;
+            }
+            .top-nav {
+                padding: 0 1.5rem;
+            }
+            .content-area {
+                padding: 0 1.5rem 1.5rem 1.5rem;
+            }
         }
 
-        .btn-premium-outline:hover {
-            border-color: #6366f1;
-            color: #6366f1;
-            background-color: rgba(99, 102, 241, 0.05);
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.2);
+        @media (max-width: 576px) {
+            .search-container {
+                display: none;
+            }
+            .page-title {
+                font-size: 1.2rem;
+            }
         }
     </style>
 </head>
@@ -426,7 +421,9 @@
 <body
     style="background-color: #020617 !important; background-image: radial-gradient(circle at top, #0f172a 0%, #020617 100%) !important; background-attachment: fixed !important; min-height: 100vh;">
 
-    <div class="sidebar">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="sidebar" id="sidebar">
         <a href="{{ route('student.dashboard') }}" class="sidebar-brand">
             <div class="brand-logo">
                 <i data-lucide="graduation-cap"></i>
@@ -451,12 +448,12 @@
         <a href="{{ route('student.status') }}"
             class="nav-link {{ request()->routeIs('student.status') ? 'active' : '' }}">
             <i data-lucide="refresh-cw"></i>
-            Application Status
+            Status
         </a>
         <a href="{{ route('student.documents') }}"
             class="nav-link {{ request()->routeIs('student.documents') ? 'active' : '' }}">
             <i data-lucide="paperclip"></i>
-            Upload Documents
+            Documents
         </a>
 
         <div class="mt-4">
@@ -469,42 +466,34 @@
             <a href="{{ route('student.receipts') }}"
                 class="nav-link {{ request()->routeIs('student.receipts') ? 'active' : '' }}">
                 <i data-lucide="file-down"></i>
-                Download Receipts
+                Receipts
             </a>
         </div>
     </div>
 
     <div class="main-content">
         <div class="top-nav">
-            <h2 class="page-title">@yield('page_title', 'Dashboard')</h2>
+            <div class="d-flex align-items-center">
+                <button class="sidebar-toggle-btn" id="sidebarToggle">
+                    <i data-lucide="menu"></i>
+                </button>
+                <h2 class="page-title">@yield('page_title', 'Dashboard')</h2>
+            </div>
 
             <div class="top-nav-right">
                 <form id="quickSearchForm" action="{{ route('student.status') }}" method="GET"
                     class="search-container">
                     <i data-lucide="search"></i>
                     <input type="text" id="quickSearchInput" name="search" class="search-input"
-                        placeholder="Search or type 'fee', 'doc'...">
+                        placeholder="Search...">
                 </form>
-
-                @php
-                    $user_app = \App\Models\Application::where('user_id', Auth::guard('student')->id())->first();
-                    $notif_dot =
-                        !$user_app || $user_app->status == 'draft' || $user_app->updated_at > now()->subDays(1);
-                @endphp
-                <button class="icon-btn">
-                    <i data-lucide="bell"></i>
-                    @if ($notif_dot)
-                        <div class="notification-dot"></div>
-                    @endif
-                </button>
 
                 <div class="user-profile-btn">
                     <div class="user-avatar">
-                        {{ strtoupper(substr(Auth::guard('student')->user()->name, 0, 1)) }}{{ strtoupper(substr(explode(' ', Auth::guard('student')->user()->name)[1] ?? '', 0, 1)) }}
+                        {{ strtoupper(substr(Auth::guard('student')->user()->name, 0, 1)) }}
                     </div>
                     <div class="d-none d-md-block">
                         <div class="user-name">{{ Auth::guard('student')->user()->name }}</div>
-                        <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 500;">Student ID: #{{ Auth::guard('student')->user()->id }}</div>
                     </div>
                     <i data-lucide="chevron-down" style="width: 16px; color: var(--text-muted);"></i>
                 </div>
@@ -520,6 +509,35 @@
         // Initialize Lucide icons
         lucide.createIcons();
 
+        // Responsive Sidebar Logic
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('active');
+                sidebarOverlay.classList.toggle('active');
+            });
+        }
+
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', () => {
+                sidebar.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+            });
+        }
+
+        // Close sidebar on link click (mobile)
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 992) {
+                    sidebar.classList.remove('active');
+                    sidebarOverlay.classList.remove('active');
+                }
+            });
+        });
+
         // Smart Search / Quick Navigation Logic
         document.getElementById('quickSearchForm').addEventListener('submit', function(e) {
             const query = document.getElementById('quickSearchInput').value.toLowerCase().trim();
@@ -532,7 +550,6 @@
                 'dashboard': ['register', 'profile', 'personal', 'details', 'application', 'edit', 'home']
             };
 
-            // Mapping keyword to Route URL
             const urlMap = {
                 'payment': "{{ route('student.payment') }}",
                 'receipts': "{{ route('student.receipts') }}",
@@ -547,12 +564,6 @@
                     window.location.href = urlMap[route];
                     return;
                 }
-            }
-
-            // If it's an application ID (starts with APP or is numeric), let it go to status page normally
-            if (query.startsWith('app') || !isNaN(query)) {
-                // Let the form submit normally to route('student.status')
-                return;
             }
         });
     </script>

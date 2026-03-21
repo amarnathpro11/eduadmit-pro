@@ -14,15 +14,16 @@ class Lead extends Model
         'email',
         'phone',
         'source',
-        'course_id',
+        'course_interested',
         'assigned_to',
         'status',
-        'score'
+        'lead_score',
+        'notes'
     ];
 
   public function course()
   {
-    return $this->belongsTo(Course::class);
+    return $this->belongsTo(Course::class, 'course_interested');
   }
 
   public function assignedTo()

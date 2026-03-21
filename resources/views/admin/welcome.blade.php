@@ -14,15 +14,20 @@
             font-family: 'Poppins', sans-serif;
             margin: 0;
             padding: 0;
-            height: 100vh;
+            min-height: 100vh;
             background:radial-gradient(circle at top,#0f172a, #020617);
             color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
         }
         .hero-title{
-            font-size:48px;
+            font-size:clamp(32px, 8vw, 48px);
             font-weight: 700;
-            /* margin-bottom: 10px;
-             */
         }
         .hero-title span{
             color: #3b82f6;
@@ -68,7 +73,7 @@
 
 </head>
 <body>
-    <div class="container h-100 d-flex flex-column justify-content-center">
+    <div class="container">
 
     <!-- Header -->
     <div class="text-center mb-5">

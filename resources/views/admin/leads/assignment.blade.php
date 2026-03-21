@@ -348,6 +348,10 @@
             outline: none;
         }
 
+        .filter-select option {
+            color: #000;
+        }
+
         .btn-bulk-auto {
             background: #2563eb;
             border: none;
