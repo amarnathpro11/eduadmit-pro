@@ -35,6 +35,12 @@ class StudentController extends Controller
 
     $user = Auth::guard('student')->user();
 
+    $course = \App\Models\Course::find($request->course_id);
+    $courseCode = $course ? strtoupper($course->code) : 'APP';
+
+    $year = date('Y');
+    $applicationNo = $courseCode . '-' . $year . '-' . strtoupper(\Illuminate\Support\Str::random(5));
+
     Application::updateOrCreate(
       ['user_id' => $user->id],
       [
@@ -47,7 +53,7 @@ class StudentController extends Controller
         'twelfth_percentage' => $request->twelfth_percentage,
         'quota_category_id' => $request->quota_category_id,
         'status' => 'applied',
-        'application_no' => 'APP-' . strtoupper(\Illuminate\Support\Str::random(8)),
+        'application_no' => $applicationNo,
         'applied_date' => now()
       ]
     );
