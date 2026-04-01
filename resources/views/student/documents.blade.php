@@ -165,12 +165,31 @@
     </div>
 
     <div class="mt-5 text-center">
-        <form action="{{ route('student.submit_verification') }}" method="POST">
-            @csrf
-            <button type="submit" class="btn-premium-primary px-5 py-3" style="font-size: 1rem; width: 300px;">
-                Submit for Verification
-            </button>
-        </form>
+        @if(in_array($application->status, ['applied', 'draft', 'rejected']))
+            <form action="{{ route('student.submit_verification') }}" method="POST">
+                @csrf
+                <button type="submit" class="btn-premium-primary px-5 py-3" style="font-size: 1rem; width: 300px;">
+                    <i data-lucide="shield-check" class="me-2" style="width: 20px;"></i>
+                    @if($application->status == 'rejected')
+                        Resubmit for Verification
+                    @else
+                        Submit for Verification
+                    @endif
+                </button>
+            </form>
+        @elseif($application->status == 'submitted_documents')
+            <div class="p-4 bg-primary bg-opacity-10 border border-primary border-opacity-10 rounded-4 d-inline-block" style="width: 400px;">
+                <i data-lucide="clock" class="text-primary mb-3" style="width: 40px; height: 40px;"></i>
+                <h5 class="text-white fw-bold mb-1">Verification in Progress</h5>
+                <p class="text-white-50 mb-0 small">Your documents have been submitted and are currently being reviewed by the admissions team.</p>
+            </div>
+        @elseif(in_array($application->status, ['verified', 'merit', 'offer_made', 'shortlisted', 'confirmed', 'enrolled']))
+            <div class="p-4 bg-success bg-opacity-10 border border-success border-opacity-10 rounded-4 d-inline-block" style="width: 400px;">
+                <i data-lucide="check-circle" class="text-success mb-3" style="width: 40px; height: 40px;"></i>
+                <h5 class="text-white fw-bold mb-1">Verification Complete</h5>
+                <p class="text-white-50 mb-0 small">Great news! All your documents have been verified. You can now proceed with the next steps.</p>
+            </div>
+        @endif
     </div>
 
     <style>

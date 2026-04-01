@@ -41,13 +41,9 @@
                             <td class="py-3 text-white-50"><small>{{ $app->course->code ?? 'N/A' }}</small></td>
                             <td class="py-3">
                                 @php
-                                    $admissionFee = $app->course->admission_fee ?? 45000;
-                                    $labFee = 100;
-                                    $totalBalance = $admissionFee + $labFee;
                                     $isPaid = false;
                                     if ($app->payments) {
-                                        $paidAmount = $app->payments->where('status', 'success')->sum('amount');
-                                        $isPaid = $paidAmount >= $totalBalance;
+                                        $isPaid = $app->payments->where('status', 'success')->count() > 0;
                                     }
                                 @endphp
                                 @if ($app->status == 'enrolled')

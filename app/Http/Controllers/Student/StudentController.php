@@ -16,7 +16,8 @@ class StudentController extends Controller
     $user = Auth::guard('student')->user();
     $application = Application::where('user_id', $user->id)->first();
     $courses = \App\Models\Course::where('is_active', true)->get();
-    return view('student.dashboard', compact('application', 'courses'));
+    $quotaCategories = \App\Models\QuotaCategory::where('is_active', true)->get();
+    return view('student.dashboard', compact('application', 'courses', 'quotaCategories'));
   }
 
   public function storeRegistration(Request $request)
@@ -29,6 +30,7 @@ class StudentController extends Controller
       'course_id' => 'required|exists:courses,id',
       'tenth_percentage' => 'required|numeric|min:0|max:100',
       'twelfth_percentage' => 'required|numeric|min:0|max:100',
+      'quota_category_id' => 'required|exists:quota_categories,id',
     ]);
 
     $user = Auth::guard('student')->user();
@@ -43,6 +45,7 @@ class StudentController extends Controller
         'course_id' => $request->course_id,
         'tenth_percentage' => $request->tenth_percentage,
         'twelfth_percentage' => $request->twelfth_percentage,
+        'quota_category_id' => $request->quota_category_id,
         'status' => 'applied',
         'application_no' => 'APP-' . strtoupper(\Illuminate\Support\Str::random(8)),
         'applied_date' => now()
@@ -67,10 +70,9 @@ class StudentController extends Controller
     $application = Application::where('user_id', $user->id)->first();
 
     if (!$application) {
-      // Create a dummy application if none exists to avoid errors, or handle as needed
+      // Create a draft application if none exists to avoid errors
       $application = Application::create([
         'user_id' => $user->id,
-        'application_no' => 'APP-' . strtoupper(\Illuminate\Support\Str::random(8)),
         'status' => 'draft'
       ]);
     }

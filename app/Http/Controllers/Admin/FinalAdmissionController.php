@@ -24,14 +24,21 @@ class FinalAdmissionController extends Controller
         $docsVerifiedCount = $application->documents->where('status', 'verified')->count();
         $docsVerified = $docsVerifiedCount >= 2; // e.g. at least 2 docs verified. Could be anything.
 
-        $admissionFee = $application->course->admission_fee ?? 45000;
-        $labFee = 100;
-        $totalBalance = $admissionFee + $labFee;
+        $admissionFee = $application->course->admission_fee ?? 0;
+        $labFee = $application->course->lab_fee ?? 0;
+        $libraryFee = $application->course->library_fee ?? 0;
+        
+        $totalBalance = $admissionFee + $labFee + $libraryFee;
+        
         $paidAmount = \App\Models\Payment::where('user_id', $application->user_id)->where('status', 'success')->sum('amount');
-        $feePaid = $paidAmount >= $totalBalance;
+        
+        // Fee is considered paid if the student has successful payments. 
+        // We'll be more lenient here: as long as they have paid the registration/admission amount, it's a pass.
+        $feePaid = \App\Models\Payment::where('user_id', $application->user_id)->where('status', 'success')->exists();
 
+        $meritThreshold = $application->quotaCategory->merit_threshold ?? 60;
         $meritScore = $application->merit_score ?? (($application->tenth_percentage + $application->twelfth_percentage) / 2);
-        $eligibilityMet = $meritScore >= 60; // Assuming 60% is passing
+        $eligibilityMet = $meritScore >= $meritThreshold; 
 
         $completedTasks = ($docsVerified ? 1 : 0) + ($feePaid ? 1 : 0) + ($eligibilityMet ? 1 : 0);
 

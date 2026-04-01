@@ -22,8 +22,14 @@ class Application extends Model
     'user_id',
     'application_no',
     'tenth_percentage',
-    'twelfth_percentage'
+    'twelfth_percentage',
+    'quota_category_id'
   ];
+
+  public function quotaCategory()
+  {
+    return $this->belongsTo(QuotaCategory::class);
+  }
 
   public function lead()
   {

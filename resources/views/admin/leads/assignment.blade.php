@@ -419,12 +419,14 @@
                 @forelse($unassignedLeads as $lead)
                     <div class="lead-card-assignment" draggable="true" data-lead-id="{{ $lead->id }}">
                         @php
-                            $priority = $lead->score >= 80 ? 'HOT' : ($lead->score >= 50 ? 'WARM' : 'COLD');
+                            $priority = $lead->lead_score >= 80 ? 'HOT' : ($lead->lead_score >= 50 ? 'WARM' : 'COLD');
                             $priorityColor =
                                 $priority == 'HOT' ? '#ef4444' : ($priority == 'WARM' ? '#f59e0b' : '#3b82f6');
                         @endphp
                         <span class="lead-priority" style="color: {{ $priorityColor }};">{{ $priority }}</span>
-                        <div class="lead-name">{{ $lead->name }}</div>
+                        <div class="lead-name">
+                            <a href="{{ route('admin.leads.show', $lead->id) }}" style="color: inherit; text-decoration: none;">{{ $lead->name }}</a>
+                        </div>
                         <div class="lead-source">
                             @if (stripos($lead->source, 'Website') !== false)
                                 <i class="fa fa-globe"></i>
@@ -595,6 +597,14 @@
             const counselorCards = document.querySelectorAll('.counselor-card');
 
             let draggedLeadId = null;
+
+            window.assignTo = function(counselorId) {
+                if (!draggedLeadId) {
+                    alert('Please drag a lead slightly to select it, or drop it directly onto the counselor card.');
+                    return;
+                }
+                performAssignment(draggedLeadId, counselorId);
+            };
 
             leadCards.forEach(card => {
                 card.addEventListener('dragstart', function() {

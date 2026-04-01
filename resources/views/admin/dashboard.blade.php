@@ -143,7 +143,9 @@
                                             default => 'bg-primary',
                                         };
                                     @endphp
-                                    <span class="badge {{ $badgeClass }}">{{ ucfirst($app->status) }}</span>
+                                    <span class="badge {{ $badgeClass }}">
+                                        {{ ucwords(str_replace('_', ' ', $app->status)) }}
+                                    </span>
                                 </td>
                                 <td>{{ $app->created_at->format('M Y') }}</td>
                             </tr>

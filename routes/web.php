@@ -18,6 +18,7 @@ use App\Http\Controllers\Student\AuthController as StudentAuthController;
 use App\Http\Controllers\Student\StudentController;
 use App\Http\Controllers\Student\PaymentController;
 use App\Http\Middleware\StudentMiddleware;
+use App\Http\Controllers\Admin\BillingController;
 
 Route::get('/', function () {
     return view('admin.welcome');
@@ -63,6 +64,10 @@ Route::prefix('admin')->group(function () {
         Route::post('/follow-ups', [FollowUpController::class, 'store'])->name('admin.follow_ups.store');
         Route::patch('/follow-ups/{followUp}/status', [FollowUpController::class, 'updateStatus'])->name('admin.follow_ups.status');
         Route::delete('/follow-ups/{followUp}', [FollowUpController::class, 'destroy'])->name('admin.follow_ups.destroy');
+        
+        // Billing & Finance
+        Route::get('/billing', [BillingController::class, 'index'])->name('admin.billing.index');
+        Route::post('/billing/payment', [BillingController::class, 'storePayment'])->name('admin.billing.store');
     });
     Route::get('/users', [UserController::class, 'index'])
         ->name('admin.users.index');
@@ -115,6 +120,13 @@ Route::prefix('admin')->group(function () {
 
     Route::post('/rules/threshold', [RuleController::class, 'updateThreshold'])
         ->name('admin.rules.threshold.update');
+
+    Route::post('/rules/quotas', [RuleController::class, 'storeQuota'])
+        ->name('admin.rules.quotas.store');
+    Route::put('/rules/quotas/{quota}', [RuleController::class, 'updateQuota'])
+        ->name('admin.rules.quotas.update');
+    Route::delete('/rules/quotas/{quota}', [RuleController::class, 'destroyQuota'])
+        ->name('admin.rules.quotas.destroy');
 
     Route::get('/admissions', [AdmissionController::class, 'index'])
         ->name('admin.admissions.index');

@@ -10,6 +10,7 @@ class QuotaCategory extends Model
         'name',
         'code',
         'percentage',
+        'merit_threshold',
         'is_active'
     ];
 

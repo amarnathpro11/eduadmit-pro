@@ -17,9 +17,12 @@
                 <div class="d-flex justify-content-between align-items-start mb-4">
                     <div>
                         @php
-                            $admissionFee = $application->course->admission_fee ?? 45000;
-                            $labFee = 100;
-                            $baseTotal = $admissionFee + $labFee;
+                            $admissionFee = $application->course->admission_fee ?? 0;
+                            $labFee = $application->course->lab_fee ?? 0;
+                            $libraryFee = $application->course->library_fee ?? 0;
+                            $maintenanceTotal = $labFee + $libraryFee;
+                            
+                            $baseTotal = $admissionFee + $maintenanceTotal;
                             $isPaid = false;
                             if (isset($payments)) {
                                 $isPaid = $payments->where('status', 'success')->sum('amount') >= $baseTotal;
@@ -30,7 +33,7 @@
                             $dueDate = \Carbon\Carbon::parse($offerDate)->addDays(7);
                             $daysRemaining = max(0, ceil(now()->diffInDays($dueDate, false)));
                         @endphp
-                        <p class="text-black fw-bold mb-1"
+                        <p class="text-white-50 fw-bold mb-1"
                             style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;">Total Outstanding
                             Balance</p>
                         <h2 class="fw-bold" style="font-family: 'Outfit'; font-size: 2.5rem; color: #ffffff;">
@@ -55,14 +58,16 @@
                 <div class="list-group list-group-flush mb-4">
                     <div class="list-group-item px-0 py-3 d-flex justify-content-between border-bottom border-light"
                         style="background: transparent;">
-                        <span class="text-white fw-medium">Admission Fee (Fall 2026)</span>
+                        <span class="text-white fw-medium">Admission Fee</span>
                         <span class="fw-bold text-white">₹{{ number_format($admissionFee, 2) }}</span>
                     </div>
+                    @if($maintenanceTotal > 0)
                     <div class="list-group-item px-0 py-3 d-flex justify-content-between border-0"
                         style="background: transparent;">
                         <span class="text-white fw-medium">Lab & Library Maintenance</span>
-                        <span class="fw-bold text-white">₹{{ number_format($labFee, 2) }}</span>
+                        <span class="fw-bold text-white">₹{{ number_format($maintenanceTotal, 2) }}</span>
                     </div>
+                    @endif
                 </div>
 
                 <div
@@ -116,10 +121,9 @@
                                 </div>
                             </div>
                             <div class="payment-details p-3 mt-2" id="details-upi"
-                                style="background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
-                                <label class="text-white-50 mb-2" style="font-size: 0.8rem;">Enter UPI ID</label>
-                                <input type="text" name="upi_id" class="form-control" placeholder="username@bank"
-                                    style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white;">
+                                style="background: rgba(0, 0, 0, 0.2); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
+                                <label class="text-white-50 mb-2" style="font-size: 0.8rem; font-weight: 600; letter-spacing: 0.5px;">ENTER UPI ID</label>
+                                <input type="text" name="upi_id" class="form-control-premium w-100" placeholder="username@bank">
                             </div>
                         </div>
 
@@ -141,24 +145,45 @@
                                 </div>
                             </div>
                             <div class="payment-details p-3 mt-2 d-none" id="details-card"
-                                style="background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                                style="background: rgba(0, 0, 0, 0.2); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
+                                
+                                <!-- Visual Credit Card Preview -->
+                                <div class="mb-4 p-4 rounded-4 shadow-lg position-relative overflow-hidden" 
+                                     style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); height: 180px; border: 1px solid rgba(255,255,255,0.1);">
+                                    <div class="position-absolute top-0 end-0 p-3 opacity-25">
+                                        <i data-lucide="credit-card" style="width: 80px; height: 80px;"></i>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-start mb-4">
+                                        <div style="width: 45px; height: 35px; background: linear-gradient(135deg, #fbbf24, #d97706); border-radius: 6px;"></div>
+                                        <i data-lucide="wifi" class="text-white-50" style="width: 20px;"></i>
+                                    </div>
+                                    <p class="text-white mb-3 fw-mono" style="font-size: 1.1rem; letter-spacing: 3px;" id="card-preview-number">#### #### #### ####</p>
+                                    <div class="d-flex justify-content-between align-items-end">
+                                        <div>
+                                            <p class="text-white-50 p-0 m-0" style="font-size: 0.6rem; text-transform: uppercase;">Card Holder</p>
+                                            <p class="text-white p-0 m-0 fw-bold" style="font-size: 0.8rem;">{{ Auth::guard('student')->user()->name }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-white-50 p-0 m-0" style="font-size: 0.6rem; text-transform: uppercase;">Expires</p>
+                                            <p class="text-white p-0 m-0 fw-bold" style="font-size: 0.8rem;" id="card-preview-expiry">MM/YY</p>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="mb-3">
-                                    <label class="text-white-50 mb-2" style="font-size: 0.8rem;">Card Number</label>
-                                    <input type="text" name="card_number" class="form-control"
-                                        placeholder="0000 0000 0000 0000"
-                                        style="background-color: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white;">
+                                    <label class="text-white-50 mb-2" style="font-size: 0.8rem; font-weight: 600; letter-spacing: 0.5px;">CARD NUMBER</label>
+                                    <input type="text" name="card_number" class="form-control-premium w-100"
+                                        placeholder="0000 0000 0000 0000" id="card-input-number">
                                 </div>
                                 <div class="row g-2">
                                     <div class="col-6">
-                                        <label class="text-white-50 mb-2" style="font-size: 0.8rem;">Expiry Date</label>
-                                        <input type="text" name="card_expiry" class="form-control"
-                                            placeholder="MM/YY"
-                                            style="background-color: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white;">
+                                        <label class="text-white-50 mb-2" style="font-size: 0.8rem; font-weight: 600; letter-spacing: 0.5px;">EXPIRY DATE</label>
+                                        <input type="text" name="card_expiry" class="form-control-premium w-100"
+                                            placeholder="MM/YY" id="card-input-expiry">
                                     </div>
                                     <div class="col-6">
-                                        <label class="text-white-50 mb-2" style="font-size: 0.8rem;">CVV</label>
-                                        <input type="text" name="card_cvv" class="form-control" placeholder="123"
-                                            style="background-color: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white;">
+                                        <label class="text-white-50 mb-2" style="font-size: 0.8rem; font-weight: 600; letter-spacing: 0.5px;">CVV</label>
+                                        <input type="password" name="card_cvv" class="form-control-premium w-100" placeholder="***">
                                     </div>
                                 </div>
                             </div>
@@ -295,7 +320,7 @@
                         <td colspan="6" class="text-center py-5 text-muted">
                             <i data-lucide="database" class="mb-2"
                                 style="width: 32px; height: 32px; color: #6366f1;"></i>
-                            <p class="mb-0 text-dark">No payment records found.</p>
+                            <p class="mb-0 text-white-50">No payment records found.</p>
                         </td>
                     </tr>
                 @endforelse
@@ -364,6 +389,33 @@
 
             // Set the hidden input value
             document.getElementById('selected_payment_method').value = type;
+        }
+
+        // Card Preview Logic
+        const cardInput = document.getElementById('card-input-number');
+        const cardPreview = document.getElementById('card-preview-number');
+        const expiryInput = document.getElementById('card-input-expiry');
+        const expiryPreview = document.getElementById('card-preview-expiry');
+
+        if(cardInput) {
+            cardInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                value = value.substring(0, 16);
+                let formatted = value.match(/.{1,4}/g)?.join(' ') || '';
+                e.target.value = formatted;
+                cardPreview.innerText = formatted || '#### #### #### ####';
+            });
+        }
+
+        if(expiryInput) {
+            expiryInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 2) {
+                    value = value.substring(0, 2) + '/' + value.substring(2, 4);
+                }
+                e.target.value = value;
+                expiryPreview.innerText = value || 'MM/YY';
+            });
         }
 
         document.getElementById('payment-form').addEventListener('submit', function(e) {

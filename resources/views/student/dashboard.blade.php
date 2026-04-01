@@ -109,7 +109,7 @@
                                 @enderror
                             </div>
 
-                            <div class="col-md-12">
+                            <div class="col-md-6">
                                 <label class="form-label-custom">Course You Are Applying For</label>
                                 <select name="course_id"
                                     class="form-control-premium w-100 @error('course_id') is-invalid @enderror" required>
@@ -121,6 +121,24 @@
                                     @endforeach
                                 </select>
                                 @error('course_id')
+                                    <div class="invalid-feedback text-danger" style="font-size: 0.75rem;">{{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Admission Category (Quota)</label>
+                                <select name="quota_category_id"
+                                    class="form-control-premium w-100 @error('quota_category_id') is-invalid @enderror" required>
+                                    <option value="">Select Category...</option>
+                                    @foreach ($quotaCategories as $category)
+                                        <option value="{{ $category->id }}"
+                                            {{ old('quota_category_id') == $category->id ? 'selected' : '' }}>
+                                            {{ $category->name }} ({{ $category->code }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('quota_category_id')
                                     <div class="invalid-feedback text-danger" style="font-size: 0.75rem;">{{ $message }}
                                     </div>
                                 @enderror
@@ -185,7 +203,7 @@
                         <div class="badge bg-success bg-opacity-10 text-success p-2 px-4"
                             style="border-radius: 12px; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.5px;">
                             <i data-lucide="check-circle" class="me-2"
-                                style="width: 14px; vertical-align: middle;"></i>{{ strtoupper($application->status) }}
+                                style="width: 14px; vertical-align: middle;"></i>{{ strtoupper(str_replace('_', ' ', $application->status)) }}
                         </div>
                     </div>
 
@@ -201,6 +219,10 @@
                         <div class="col-md-4">
                             <p class="form-label-custom mb-2">ACADEMIC SCORE (12th)</p>
                             <h5 class="fw-bold text-white">{{ $application->twelfth_percentage }}%</h5>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="form-label-custom mb-2">CATEGORY / QUOTA</p>
+                            <h5 class="fw-bold text-white">{{ $application->quotaCategory->name ?? 'GENERAL' }}</h5>
                         </div>
                         <div class="col-md-4">
                             <p class="form-label-custom mb-2">APPLIED DATE</p>

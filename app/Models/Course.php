@@ -14,6 +14,8 @@ class Course extends Model
         'total_seats',
         'application_fee',
         'admission_fee',
+        'lab_fee',
+        'library_fee',
         'is_active',
         'department_id',
         'description',

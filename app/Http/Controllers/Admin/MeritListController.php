@@ -16,7 +16,7 @@ class MeritListController extends Controller
     {
         $status = $request->query('status', 'all');
 
-        $query = Application::with('course', 'user')->whereIn('status', ['verified', 'merit', 'offer_made', 'confirmed', 'enrolled']);
+        $query = Application::with('course', 'user', 'quotaCategory')->whereIn('status', ['verified', 'merit', 'offer_made', 'confirmed', 'enrolled', 'shortlisted']);
 
         if ($status == 'shortlisted') {
             $query->where('status', 'merit'); // map 'merit' to shortlisted
@@ -26,11 +26,11 @@ class MeritListController extends Controller
 
         $applications = $query->paginate(10);
 
-        $totalCandidates = Application::whereIn('status', ['verified', 'merit', 'offer_made', 'confirmed', 'enrolled'])->count();
+        $totalCandidates = Application::whereIn('status', ['verified', 'merit', 'offer_made', 'confirmed', 'enrolled', 'shortlisted'])->count();
 
         $stats = [
             'total' => $totalCandidates,
-            'shortlisted' => Application::where('status', 'merit')->count(),
+            'shortlisted' => Application::whereIn('status', ['merit', 'shortlisted'])->count(),
             'selected' => Application::whereIn('status', ['offer_made', 'confirmed', 'enrolled'])->count(),
             'verified' => Application::where('status', 'verified')->count() // acting as waitlisted/pending
         ];
@@ -39,24 +39,22 @@ class MeritListController extends Controller
             $q->whereIn('status', ['offer_made', 'confirmed', 'enrolled']);
         }])->get();
 
-        $meritThreshold = cache()->get('merit_threshold', 60);
-
-        return view('admin.merit_list.index', compact('applications', 'stats', 'courses', 'status', 'meritThreshold'));
+        return view('admin.merit_list.index', compact('applications', 'stats', 'courses', 'status'));
     }
 
     public function generate()
     {
         // Calculate merit score based on 10th and 12th percentage since there is no entrance exam.
         // We calculate an average of both percentages as the merit score.
-        $applications = Application::where('status', 'verified')->get();
+        $applications = Application::with('quotaCategory')->whereIn('status', ['verified', 'confirmed'])->get();
         if ($applications->isEmpty()) {
-            return redirect()->back()->with('error', 'No verified candidates available to shortlist.');
+            return redirect()->back()->with('error', 'No verified or paid candidates available to shortlist.');
         }
 
         $shortlistedCount = 0;
-        $threshold = cache()->get('merit_threshold', 60);
 
         foreach ($applications as $app) {
+            $threshold = $app->quotaCategory->merit_threshold ?? 60;
             $tenth = floatval($app->tenth_percentage);
             $twelfth = floatval($app->twelfth_percentage);
 
@@ -73,7 +71,7 @@ class MeritListController extends Controller
             $app->save();
         }
 
-        return redirect()->back()->with('success', "Auto-Merit generated. $shortlistedCount candidates shortlisted based on 10th and 12th marks (Minimum {$threshold}%).");
+        return redirect()->back()->with('success', "Auto-Merit generated. $shortlistedCount candidates shortlisted based on their respective category thresholds.");
     }
 
     public function publish()

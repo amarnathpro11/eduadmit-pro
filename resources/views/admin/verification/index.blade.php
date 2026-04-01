@@ -164,16 +164,30 @@
                                         <small>{{ \Carbon\Carbon::parse($app->updated_at)->format('M d, Y') }}</small>
                                     </td>
                                     <td class="py-3">
-                                        @if ($app->status == 'pending' || $app->status == 'submitted_documents')
-                                            <span
-                                                class="badge bg-warning bg-opacity-10 text-warning px-2 py-1">Pending</span>
-                                        @elseif(in_array($app->status, ['verified', 'merit', 'offer_made', 'confirmed', 'enrolled']))
-                                            <span
-                                                class="badge bg-success bg-opacity-10 text-success px-2 py-1">Verified</span>
-                                        @elseif($app->status == 'rejected')
-                                            <span
-                                                class="badge bg-danger bg-opacity-10 text-danger px-2 py-1">Rejected</span>
-                                        @endif
+                                        <div class="d-flex flex-column gap-1">
+                                            @php
+                                                $status = $app->status;
+                                                if ($status == 'submitted_documents') $statusLabel = 'Pending Review';
+                                                elseif ($status == 'merit') $statusLabel = 'Shortlisted';
+                                                elseif ($status == 'offer_made') $statusLabel = 'Offer Sent';
+                                                else $statusLabel = ucwords(str_replace('_', ' ', $status));
+
+                                                $badgeClass = match ($status) {
+                                                    'verified', 'merit', 'offer_made', 'confirmed', 'enrolled' => 'bg-success text-success',
+                                                    'rejected' => 'bg-danger text-danger',
+                                                    default => 'bg-warning text-warning',
+                                                };
+                                            @endphp
+                                            <span class="badge {{ $badgeClass }} bg-opacity-10 px-2 py-1" style="width: fit-content; min-width: 80px;">
+                                                {{ $statusLabel }}
+                                            </span>
+
+                                            @if($app->payments->where('status', 'success')->count() > 0)
+                                                <span class="badge bg-primary bg-opacity-20 text-info px-2 py-1 border border-info border-opacity-25" style="width: fit-content;">
+                                                    <i class="fa fa-receipt me-1 small"></i> PAID
+                                                </span>
+                                            @endif
+                                        </div>
                                     </td>
                                 </tr>
                             @empty

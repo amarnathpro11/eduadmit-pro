@@ -21,7 +21,7 @@
             --bg-body: radial-gradient(circle at top, #0f172a 0%, #020617 100%);
             --bg-card: rgba(255, 255, 255, 0.05);
             --bg-sidebar: #0f172a;
-            --accent-green: #6366f1;
+            --accent-primary: #6366f1;
             --accent-blue: #3b82f6;
             --accent-purple: #8b5cf6;
             --text-main: #ffffff;
@@ -46,11 +46,19 @@
         /* Force Select/Input Visibility */
         select,
         input,
-        textarea,
-        button {
+        textarea {
             background-color: rgba(255, 255, 255, 0.05) !important;
             color: #ffffff !important;
             border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+
+        ::placeholder {
+            color: rgba(255, 255, 255, 0.4) !important;
+            opacity: 1;
+        }
+
+        ::-ms-input-placeholder {
+            color: rgba(255, 255, 255, 0.4) !important;
         }
 
         option {

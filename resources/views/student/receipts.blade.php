@@ -40,8 +40,9 @@
                 @empty
                     <div class="text-center py-5 text-muted">
                         <i data-lucide="info" class="mb-3" style="width: 48px; height: 48px;"></i>
-                        <h5>No Receipts Available</h5>
-                        <p>You haven't made any payments yet. Completed transactions will appear here.</p>
+                        <h5 class="text-white-50">No Receipts Available</h5>
+                        <p class="text-white-50">You haven't made any payments yet. Completed transactions will appear
+                            here.</p>
                     </div>
                 @endforelse
             </div>

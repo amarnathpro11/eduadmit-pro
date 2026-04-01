@@ -101,6 +101,12 @@ class PaymentController extends Controller
         'status' => 'success',
       ]);
 
+      // Update application status to confirmed
+      $app = Application::where('user_id', Auth::guard('student')->id())->first();
+      if ($app) {
+          $app->update(['status' => 'confirmed']);
+      }
+
       return redirect()->route('student.receipts')->with('success', 'Payment successful.');
     } else {
       return redirect()->route('student.payment')->with('error', $error);

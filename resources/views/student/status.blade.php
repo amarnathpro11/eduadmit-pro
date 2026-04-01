@@ -3,10 +3,11 @@
 @section('page_title', 'Application Status')
 
 @section('content')
+
     <div class="row align-items-center g-3 mb-4">
         <div class="col-12 col-md">
             <p style="color: rgba(255, 255, 255, 0.7); font-weight: 500; margin-bottom: 0; font-size: 0.9rem;">
-                Application ID: <span class="fw-bold text-white">{{ $application->application_no }}</span> 
+                Application ID: <span class="fw-bold text-white">{{ $application->application_no ?? 'DRAFT' }}</span>
                 <span class="d-none d-md-inline"> | </span><br class="d-md-none">
                 Course: <span class="fw-bold text-white">{{ $application->course->name ?? 'Not Selected' }}</span>
             </p>
@@ -28,53 +29,82 @@
 
             <!-- Progress Tracker -->
             @php
-                // Dynamic Logic for steps (unchanged)
                 $uploadedCount = $documents->count();
                 $totalRequired = 6;
                 $isDocsStarted = $uploadedCount > 0;
                 $isDocsCompleted = $uploadedCount >= $totalRequired;
                 $currentStatus = $application->status;
-                $statusMap = [
-                    'draft' => 0, 'applied' => 1, 'pending' => 1, 'submitted_documents' => 1,
-                    'verified' => 2, 'merit' => 3, 'offer_made' => 5, 'confirmed' => 6, 'enrolled' => 6,
-                ];
-                $currentIndex = $statusMap[$currentStatus] ?? 1;
-                if ($currentIndex == 1 && $isDocsStarted && !$isDocsCompleted) $currentIndex = 1;
-                elseif ($currentIndex == 1 && $isDocsCompleted) $currentIndex = 2;
 
+                // Track logical progress based on DB status
+                $statusMap = [
+                    'draft' => 0,
+                    'applied' => 1,
+                    'pending' => 1,
+                    'submitted_documents' => 1,
+                    'verified' => 2,
+                    'merit' => 3,
+                    'offer_made' => 4,
+                    'confirmed' => 5,
+                    'enrolled' => 5,
+                ];
+                $dbIndex = $statusMap[$currentStatus] ?? 1;
+
+                // Payment Status
                 $isPaid = false;
                 if (isset($payments)) {
-                    $admissionFee = $application->course->admission_fee ?? 45000;
-                    $labFee = 100;
-                    $totalBalance = $admissionFee + $labFee;
-                    $isPaid = $payments->where('status', 'success')->sum('amount') >= $totalBalance;
+                    $admissionFee = $application->course->admission_fee ?? 0;
+                    $labFee = $application->course->lab_fee ?? 0;
+                    $libraryFee = $application->course->library_fee ?? 0;
+                    $totalBalance = $admissionFee + $labFee + $libraryFee;
+                    $isPaid =
+                        $payments->where('status', 'success')->sum('amount') >= $totalBalance && $totalBalance > 0;
                 }
 
+                // Determine visual progress (if paid, we are at least at step 5)
+                $currentIndex = max($dbIndex, $isPaid ? 5 : 0);
+
                 $steps = [
-                    'Registered' => ['label' => 'Submitted', 'sub' => $application->applied_date ? \Illuminate\Support\Carbon::parse($application->applied_date)->format('M d, Y') : 'Pending'],
-                    'Applied' => ['label' => 'Under Review', 'sub' => $isDocsCompleted ? 'Form Approved' : ($isDocsStarted ? $uploadedCount . ' of ' . $totalRequired . ' Uploaded' : 'In Progress')],
-                    'Docs' => ['label' => 'Verified', 'sub' => $isDocsCompleted ? 'Awaiting Approval' : 'Pending Uploads'],
-                    'Merit' => ['label' => 'Merit List', 'sub' => $currentIndex >= 4 ? 'Selected' : 'Upcoming'],
-                    'Confirm' => ['label' => 'Offer Made', 'sub' => $currentIndex >= 5 ? 'Approved' : 'Pending'],
-                    'Enrolled' => ['label' => 'Enrolled', 'sub' => $isPaid ? 'Paid' : ($currentIndex >= 6 ? 'Finalized' : 'Payment Pend.')],
+                    [
+                        'label' => $currentStatus == 'draft' ? 'Registration' : 'Submitted',
+                        'sub' => $application->applied_date
+                            ? \Illuminate\Support\Carbon::parse($application->applied_date)->format('M d, Y')
+                            : ($currentStatus == 'draft' ? 'In Progress' : 'Pending'),
+                    ],
+                    [
+                        'label' => 'Under Review',
+                        'sub' => $dbIndex > 1 ? 'Approved' : ($isDocsCompleted ? 'Form Received' : ($currentStatus == 'draft' ? 'Awaiting Form' : 'In Progress')),
+                    ],
+                    [
+                        'label' => 'Verified',
+                        'sub' =>
+                            $dbIndex >= 2 ? 'Verified' : ($isDocsCompleted ? 'Awaiting Approval' : 'Pending Uploads'),
+                    ],
+                    ['label' => 'Merit List', 'sub' => $dbIndex >= 3 ? 'Selected' : 'Upcoming'],
+                    ['label' => 'Offer Made', 'sub' => $dbIndex >= 4 ? 'Accepted' : 'Pending'],
+                    ['label' => 'Enrolled', 'sub' => $isPaid ? 'Paid' : 'Finalized'],
                 ];
             @endphp
 
             <div class="progress-tracker-wrap py-4">
                 <div class="tracker-line-bg d-none d-md-block"></div>
-                <div class="tracker-line-fill d-none d-md-block" style="width: {{ min(100, ($currentIndex / (count($steps) - 1)) * 100) }}%"></div>
+                <div class="tracker-line-fill d-none d-md-block"
+                    style="width: {{ min(100, ($currentIndex / (count($steps) - 1)) * 100) }}%"></div>
 
-                <div class="tracker-container d-flex flex-column flex-md-row justify-content-between position-relative gap-4 gap-md-0">
+                <div
+                    class="tracker-container d-flex flex-column flex-md-row justify-content-between position-relative gap-4 gap-md-0">
                     @foreach (array_values($steps) as $index => $step)
-                        <div class="tracker-step text-start text-md-center d-flex d-md-block align-items-center gap-3 gap-md-0">
-                            <div class="step-circle @if ($index < $currentIndex || ($step['label'] == 'Enrolled' && $isPaid)) completed @elseif($index == $currentIndex) active @endif flex-shrink-0">
+                        <div
+                            class="tracker-step text-start text-md-center d-flex d-md-block align-items-center gap-3 gap-md-0">
+                            <div
+                                class="step-circle @if ($index < $currentIndex || ($step['label'] == 'Enrolled' && $isPaid)) completed @elseif($index == $currentIndex) active @endif flex-shrink-0">
                                 @if ($index < $currentIndex || ($step['label'] == 'Enrolled' && $isPaid))
                                     <i data-lucide="check" style="width: 14px;"></i>
                                 @elseif($index == $currentIndex)
                                     <i data-lucide="refresh-cw" class="spin" style="width: 14px;"></i>
                                 @endif
-                                @if($index < count($steps) - 1)
-                                    <div class="d-md-none vertical-line @if($index < $currentIndex) completed @endif"></div>
+                                @if ($index < count($steps) - 1)
+                                    <div class="d-md-none vertical-line @if ($index < $currentIndex) completed @endif">
+                                    </div>
                                 @endif
                             </div>
                             <div class="mt-md-3">
@@ -111,12 +141,37 @@
                     <div class="document-list">
                         @php
                             $documentTypes = [
-                                ['id' => '10th', 'name' => '10th Marksheet', 'icon' => 'file-text', 'color' => '#3b82f6'],
-                                ['id' => '12th', 'name' => '12th Certificate', 'icon' => 'file-text', 'color' => '#f59e0b'],
-                                ['id' => 'tc', 'name' => 'Transfer Certificate', 'icon' => 'file-minus', 'color' => '#ef4444'],
-                                ['id' => 'id', 'name' => 'ID Proof (Aadhaar)', 'icon' => 'user-check', 'color' => '#8b5cf6'],
+                                [
+                                    'id' => '10th',
+                                    'name' => '10th Marksheet',
+                                    'icon' => 'file-text',
+                                    'color' => '#3b82f6',
+                                ],
+                                [
+                                    'id' => '12th',
+                                    'name' => '12th Certificate',
+                                    'icon' => 'file-text',
+                                    'color' => '#f59e0b',
+                                ],
+                                [
+                                    'id' => 'tc',
+                                    'name' => 'Transfer Certificate',
+                                    'icon' => 'file-minus',
+                                    'color' => '#ef4444',
+                                ],
+                                [
+                                    'id' => 'id',
+                                    'name' => 'ID Proof (Aadhaar)',
+                                    'icon' => 'user-check',
+                                    'color' => '#8b5cf6',
+                                ],
                                 ['id' => 'photo', 'name' => 'Passport Photo', 'icon' => 'image', 'color' => '#06b6d4'],
-                                ['id' => 'income', 'name' => 'Income Certificate', 'icon' => 'wallet', 'color' => '#ec4899'],
+                                [
+                                    'id' => 'income',
+                                    'name' => 'Income Certificate',
+                                    'icon' => 'wallet',
+                                    'color' => '#ec4899',
+                                ],
                             ];
                         @endphp
                         @foreach ($documentTypes as $doc)
@@ -200,31 +255,108 @@
     @endif
 
     <style>
-        .progress-tracker-wrap { position: relative; }
-        .tracker-line-bg { position: absolute; top: 21px; left: 3rem; right: 3rem; height: 4px; background-color: rgba(255, 255, 255, 0.05); border-radius: 10px; z-index: 0; }
-        .tracker-line-fill { position: absolute; top: 21px; left: 3rem; height: 4px; background: linear-gradient(90deg, #6366f1, #4338ca); border-radius: 10px; z-index: 1; transition: width 0.8s ease; }
-        .step-circle { width: 42px; height: 42px; background-color: #0f172a; border: 2px solid rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; position: relative; z-index: 2; transition: all 0.3s ease; color: rgba(255,255,255,0.4); }
-        .step-circle.active { border-color: #6366f1; color: #6366f1; background-color: #0f172a; transform: scale(1.1); box-shadow: 0 0 15px rgba(99, 102, 241, 0.3); }
-        .step-circle.completed { background-color: #6366f1; border-color: #6366f1; color: white; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.4); }
-        .spin { animation: rotate 2s linear infinite; }
-        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .doc-item:hover { border-color: #6366f1 !important; background-color: rgba(99, 102, 241, 0.02); }
-        
+        .progress-tracker-wrap {
+            position: relative;
+        }
+
+        .tracker-line-bg {
+            position: absolute;
+            top: 21px;
+            left: 3rem;
+            right: 3rem;
+            height: 4px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            z-index: 0;
+        }
+
+        .tracker-line-fill {
+            position: absolute;
+            top: 21px;
+            left: 3rem;
+            height: 4px;
+            background: linear-gradient(90deg, #6366f1, #4338ca);
+            border-radius: 10px;
+            z-index: 1;
+            transition: width 0.8s ease;
+        }
+
+        .step-circle {
+            width: 42px;
+            height: 42px;
+            background-color: #0f172a;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s ease;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .step-circle.active {
+            border-color: #6366f1;
+            color: #6366f1;
+            background-color: #0f172a;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .step-circle.completed {
+            background-color: #6366f1;
+            border-color: #6366f1;
+            color: white;
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.4);
+        }
+
+        .spin {
+            animation: rotate 2s linear infinite;
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .doc-item:hover {
+            border-color: #6366f1 !important;
+            background-color: rgba(99, 102, 241, 0.02);
+        }
+
         .vertical-line {
             position: absolute;
             top: 40px;
             left: 50%;
             width: 2px;
             height: 30px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             transform: translateX(-50%);
         }
-        .vertical-line.completed { background: #6366f1; }
-        
+
+        .vertical-line.completed {
+            background: #6366f1;
+        }
+
         @media (max-width: 768px) {
-            .tracker-step { width: 100%; }
-            .step-circle { margin: 0; }
-            .vertical-line { height: 45px; }
+            .tracker-step {
+                width: 100%;
+            }
+
+            .step-circle {
+                margin: 0;
+            }
+
+            .vertical-line {
+                height: 45px;
+            }
         }
     </style>
 @endsection
