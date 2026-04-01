@@ -16,11 +16,24 @@ EduAdmit Pro is a modern, comprehensive web application designed to streamline t
 
 ### 🎓 Student Experience
 
-- **Self-Service Portal**: A personalized dashboard for students to track their application status.
-- **Document Management**: Securely upload and manage required admission documents.
-- **Multi-Stage Tracking**: Real-time status updates from "Applied" to "Fee Verification" and "Final Admission."
-- **Automated Notifications**: Instant email updates for offer letters and payment confirmations.
-- **Digital Receipts**: Downloadable payment receipts and admission confirmations in PDF format.
+- **Online Application Management**: Full form-filling for personal details, academic marks (10th & 12th %) and course selection.
+- **Self-Service Portal**: A personalized dashboard for students to track their application status in real-time.
+- **Document Management**: Securely upload and manage required admission documents (10th Marksheet, 12th Certificate, etc.).
+- **Multi-Stage Tracking**: Visual journey tracker from "Registration" to "Verified" and "Final Admission."
+- **Transactional Emails**: Password resets and offer notifications integrated via Mailtrap.
+- **Digital Receipts**: Downloadable payment receipts and application summaries in PDF format.
+
+## ✅ Project Status: Core Modules Implemented
+
+The following modules are now 100% functional and integrated:
+
+| Module | Features Included |
+| :--- | :--- |
+| **Registration** | Email-based signup, login, and secure session management. |
+| **Application** | Personal info, Academic background (marks), and Course preferences. |
+| **Admin Central** | Leads pipeline, Lead Assignment, Verification, Merit List, and Final Admission. |
+| **System Rules** | Dynamic merit thresholds, admission categories, and seat management. |
+| **Finance** | Razorpay test integration for fee collection and automated receipts. |
 
 ## 🛠️ Technology Stack
 
