@@ -1,0 +1,1 @@
+id, user_id, amount, payment_type, status, paid_at, created_at, updated_at, transaction_id

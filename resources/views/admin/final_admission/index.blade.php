@@ -48,6 +48,9 @@
                                 @endphp
                                 @if ($app->status == 'enrolled')
                                     <span class="badge bg-success bg-opacity-10 text-success px-2 py-1">Enrolled</span>
+                                    @if($app->enrollment && $app->enrollment->student_id)
+                                        <div class="mt-1"><small class="text-white-50"><i class="fa fa-id-card me-1"></i>{{ $app->enrollment->student_id }}</small></div>
+                                    @endif
                                 @elseif($isPaid)
                                     <span class="badge bg-info bg-opacity-10 text-info px-2 py-1">Fee Paid / Ready</span>
                                 @else

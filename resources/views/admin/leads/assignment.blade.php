@@ -481,15 +481,16 @@
                 @foreach ($counselors as $counselor)
                     @php
                         $maxWorkload = 20;
-                        $currentWorkload = $counselor->leads_count;
+                        $currentWorkload = $counselor->active_leads_count;
                         $workloadPercent = ($currentWorkload / $maxWorkload) * 100;
                         $barColor =
                             $workloadPercent >= 90 ? '#ef4444' : ($workloadPercent >= 70 ? '#f59e0b' : '#6366f1');
                         $isAtCapacity = $currentWorkload >= $maxWorkload;
 
-                        // Mock success rates for design fidelity
-                        $successRates = [92, 84, 78, 88, 75, 90];
-                        $successRate = $successRates[$loop->index % 6];
+                        // Real success rate calculation
+                        $totalLeads = $counselor->total_leads_count;
+                        $convertedLeads = $counselor->converted_leads_count;
+                        $successRate = $totalLeads > 0 ? round(($convertedLeads / $totalLeads) * 100) : 0;
                     @endphp
                     <div class="counselor-card" data-counselor-id="{{ $counselor->id }}">
                         <div class="counselor-header">

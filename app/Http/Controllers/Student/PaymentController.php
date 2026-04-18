@@ -17,7 +17,12 @@ class PaymentController extends Controller
 
   public function __construct()
   {
-    $this->api = new Api(config('services.razorpay.key'), config('services.razorpay.secret'));
+    $key = config('services.razorpay.key');
+    $secret = config('services.razorpay.secret');
+    
+    if ($key && $secret && !env('MOCK_PAYMENT', false)) {
+        $this->api = new Api($key, $secret);
+    }
   }
 
   public function receipts()
@@ -49,6 +54,17 @@ class PaymentController extends Controller
   public function processPayment(Request $request)
   {
     $input = $request->all();
+    $user = Auth::guard('student')->user();
+
+    // Handle Mock Payment Mode
+    if (!$this->api || env('MOCK_PAYMENT', false)) {
+        return view('student.mock_checkout', [
+            'order_id' => 'mock_ord_' . time(),
+            'amount'   => $input['amount'],
+            'type'     => $input['type'] ?? 'admission',
+            'user'     => $user
+        ]);
+    }
 
     // Create Order
     $orderData = [
@@ -58,19 +74,28 @@ class PaymentController extends Controller
       'payment_capture' => 1 // auto capture
     ];
 
-    $razorpayOrder = $this->api->order->create($orderData);
+    try {
+        $razorpayOrder = $this->api->order->create($orderData);
 
-    Session::put('razorpay_order_id', $razorpayOrder['id']);
+        Session::put('razorpay_order_id', @$razorpayOrder['id']);
+        Session::put('payment_type', $input['type'] ?? 'admission');
 
-    $user = Auth::guard('student')->user();
-
-    return view('student.checkout', [
-      'order_id' => $razorpayOrder['id'],
-      'amount'   => $input['amount'],
-      'key'      => config('services.razorpay.key'),
-      'name'     => $user ? $user->name : 'Student',
-      'email'    => $user ? $user->email : 'student@example.com',
-    ]);
+        return view('student.checkout', [
+          'order_id' => $razorpayOrder['id'],
+          'amount'   => $input['amount'],
+          'key'      => config('services.razorpay.key'),
+          'name'     => $user ? $user->name : 'Student',
+          'email'    => $user ? $user->email : 'student@example.com',
+        ]);
+    } catch (\Exception $e) {
+        return view('student.mock_checkout', [
+            'order_id' => 'mock_ord_' . time(),
+            'amount'   => $input['amount'],
+            'type'     => $input['type'] ?? 'admission',
+            'user'     => $user,
+            'error'    => $e->getMessage()
+        ]);
+    }
   }
 
   public function verifyPayment(Request $request)
@@ -80,13 +105,18 @@ class PaymentController extends Controller
 
     if (empty($request->razorpay_payment_id) === false) {
       try {
-        $attributes = [
-          'razorpay_order_id' => Session::get('razorpay_order_id'),
-          'razorpay_payment_id' => $request->razorpay_payment_id,
-          'razorpay_signature' => $request->razorpay_signature
-        ];
+        if ($this->api && !env('MOCK_PAYMENT', false)) {
+            $attributes = [
+              'razorpay_order_id' => Session::get('razorpay_order_id'),
+              'razorpay_payment_id' => $request->razorpay_payment_id,
+              'razorpay_signature' => $request->razorpay_signature
+            ];
 
-        $this->api->utility->verifyPaymentSignature($attributes);
+            $this->api->utility->verifyPaymentSignature($attributes);
+        } else {
+            // Mock verification
+            $success = $request->razorpay_payment_id === 'mock_pay_success';
+        }
       } catch (\Exception $e) {
         $success = false;
         $error = 'Razorpay Error : ' . $e->getMessage();
@@ -94,16 +124,18 @@ class PaymentController extends Controller
     }
 
     if ($success === true) {
+      $paymentType = Session::get('payment_type', 'admission');
       Payment::create([
         'user_id' => Auth::guard('student')->id(),
         'transaction_id' => $request->razorpay_payment_id,
         'amount' => $request->amount / 100,
         'status' => 'success',
+        'payment_type' => $paymentType,
       ]);
 
-      // Update application status to confirmed
+      // Update application status to confirmed only for admission fee
       $app = Application::where('user_id', Auth::guard('student')->id())->first();
-      if ($app) {
+      if ($app && $paymentType === 'admission') {
           $app->update(['status' => 'confirmed']);
       }
 

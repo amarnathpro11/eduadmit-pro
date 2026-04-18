@@ -20,9 +20,15 @@ use App\Http\Controllers\Student\PaymentController;
 use App\Http\Middleware\StudentMiddleware;
 use App\Http\Controllers\Admin\BillingController;
 
-Route::get('/', function () {
+Route::get('/', function (\Illuminate\Http\Request $request) {
+    $courses = \App\Models\Course::where('is_active', true)->get();
+    $source = $request->query('source', 'Website');
+    return view('landing', compact('courses', 'source'));
+})->name('home');
+
+Route::get('/portals', function () {
     return view('admin.welcome');
-});
+})->name('portals');
 
 Route::prefix('admin')->group(function () {
 
@@ -37,10 +43,11 @@ Route::prefix('admin')->group(function () {
     Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('admin.password.update');
 
 
+    Route::post('/logout', [AuthController::class, 'logout'])->name('admin.logout');
+
     Route::middleware([AdminMiddleware::class])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
         Route::get('/dashboard/download', [DashboardController::class, 'downloadSummary'])->name('admin.dashboard.download');
-        Route::post('/logout', [AuthController::class, 'logout'])->name('admin.logout');
 
         // Lead Management
         Route::get('/leads', [\App\Http\Controllers\Admin\LeadController::class, 'index'])->name('admin.leads.index');
@@ -64,10 +71,17 @@ Route::prefix('admin')->group(function () {
         Route::post('/follow-ups', [FollowUpController::class, 'store'])->name('admin.follow_ups.store');
         Route::patch('/follow-ups/{followUp}/status', [FollowUpController::class, 'updateStatus'])->name('admin.follow_ups.status');
         Route::delete('/follow-ups/{followUp}', [FollowUpController::class, 'destroy'])->name('admin.follow_ups.destroy');
-        
-        // Billing & Finance
-        Route::get('/billing', [BillingController::class, 'index'])->name('admin.billing.index');
-        Route::post('/billing/payment', [BillingController::class, 'storePayment'])->name('admin.billing.store');
+    });
+
+    // Accountant Portal (Separated)
+    Route::get('/accountant/login', [AuthController::class, 'showAccountantLogin'])->name('accountant.login');
+    Route::post('/accountant/login', [AuthController::class, 'login'])->name('accountant.login.submit');
+
+    Route::prefix('accountant')->middleware(['accountant'])->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\Accountant\AccountantController::class, 'index'])->name('accountant.dashboard');
+        Route::get('/payment-history', [\App\Http\Controllers\Accountant\AccountantController::class, 'paymentHistory'])->name('accountant.payment_history');
+        Route::get('/export-report', [\App\Http\Controllers\Accountant\AccountantController::class, 'exportReport'])->name('accountant.exportReport');
+        Route::post('/billing/payment', [\App\Http\Controllers\Accountant\AccountantController::class, 'storePayment'])->name('accountant.storePayment');
     });
     Route::get('/users', [UserController::class, 'index'])
         ->name('admin.users.index');
@@ -86,6 +100,9 @@ Route::prefix('admin')->group(function () {
 
     Route::put('/users/{user}', [UserController::class, 'update'])
         ->name('admin.users.update');
+
+    Route::delete('/users/{user}', [UserController::class, 'destroy'])
+        ->name('admin.users.destroy');
 
 
     Route::get('/departments', [DepartmentController::class, 'index'])
@@ -229,3 +246,40 @@ Route::prefix('student')->group(function () {
         Route::post('/logout', [StudentAuthController::class, 'logout'])->name('student.logout');
     });
 });
+
+// Counselor Portal (Separated)
+Route::prefix('counselor')->group(function () {
+    Route::get('/login', [\App\Http\Controllers\Counselor\AuthController::class, 'showLoginForm'])->name('counselor.login');
+    Route::post('/login', [\App\Http\Controllers\Counselor\AuthController::class, 'login'])->name('counselor.login.submit');
+    
+    Route::middleware(['counselor'])->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\Counselor\DashboardController::class, 'index'])->name('counselor.dashboard');
+        
+        // Leads
+        Route::get('/leads', [\App\Http\Controllers\Counselor\LeadController::class, 'index'])->name('counselor.leads.index');
+
+        Route::get('/schedule', [\App\Http\Controllers\Counselor\LeadController::class, 'schedule'])->name('counselor.leads.schedule');
+        Route::get('/leads/{lead}', [\App\Http\Controllers\Counselor\LeadController::class, 'show'])->name('counselor.leads.show');
+
+        Route::get('/leads/{lead}/history', [\App\Http\Controllers\Counselor\LeadController::class, 'history'])->name('counselor.leads.history');
+        Route::post('/leads/{lead}/communications', [\App\Http\Controllers\Counselor\LeadController::class, 'storeCommunication'])->name('counselor.leads.communications.store');
+        Route::get('/leads/{lead}/email', [\App\Http\Controllers\Counselor\LeadController::class, 'sendEmail'])->name('counselor.leads.email');
+        Route::get('/leads/{lead}/preview-email', [\App\Http\Controllers\Counselor\LeadController::class, 'previewEmail'])->name('counselor.leads.preview_email');
+        Route::delete('/leads/communications/{communication}', [\App\Http\Controllers\Counselor\LeadController::class, 'destroyCommunication'])->name('counselor.leads.communications.destroy');
+        Route::patch('/leads/{lead}/status', [\App\Http\Controllers\Counselor\LeadController::class, 'updateStatus'])->name('counselor.leads.status.update');
+
+
+        Route::post('/leads/{lead}/followup', [\App\Http\Controllers\Counselor\LeadController::class, 'scheduleFollowup'])->name('counselor.leads.followup.store');
+        Route::post('/leads/followup/{followup}/complete', [\App\Http\Controllers\Counselor\LeadController::class, 'completeFollowup'])->name('counselor.leads.followup.complete');
+        Route::delete('/leads/followup/{followup}', [\App\Http\Controllers\Counselor\LeadController::class, 'destroyFollowup'])->name('counselor.leads.followup.destroy');
+
+        Route::post('/leads/{lead}/convert', [\App\Http\Controllers\Counselor\LeadController::class, 'convert'])->name('counselor.leads.convert');
+        Route::post('/leads/{lead}/resend-welcome', [\App\Http\Controllers\Counselor\LeadController::class, 'resendWelcome'])->name('counselor.leads.resend_welcome');
+
+        
+        Route::post('/logout', [\App\Http\Controllers\Counselor\AuthController::class, 'logout'])->name('counselor.logout');
+    });
+});
+
+// API or Public Website Endpoints
+Route::post('/api/website/leads/capture', [\App\Http\Controllers\Admin\LeadController::class, 'publicCapture'])->name('api.leads.capture');

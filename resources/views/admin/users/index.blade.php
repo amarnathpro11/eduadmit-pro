@@ -71,7 +71,13 @@
                             </td>
 
                             <td>
-                                {{ $user->department->name ?? 'All' }}
+                                @if($user->department)
+                                    {{ $user->department->name }}
+                                @elseif($user->role && $user->role->name === 'admin')
+                                    <span class="badge bg-secondary bg-opacity-25 text-secondary">All</span>
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
                             </td>
 
                             <td>
@@ -87,8 +93,16 @@
                             </td>
 
                             <td class="text-end">
-                                <a href="{{ route('admin.users.edit', $user->id) }}"
-                                    class="btn btn-sm btn-outline-light">Edit</a>
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="{{ route('admin.users.edit', $user->id) }}"
+                                        class="btn btn-sm btn-outline-light">Edit</a>
+                                    
+                                    <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this user? This action cannot be undone.');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" {{ $user->id === auth()->id() ? 'disabled' : '' }}>Delete</button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     @endforeach

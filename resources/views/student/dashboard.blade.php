@@ -49,6 +49,29 @@
                 </div>
             @endif
 
+            @if ($counselor)
+                <div class="premium-card mb-4"
+                    style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);">
+                    <div class="row align-items-center">
+                        <div class="col-md-auto mb-3 mb-md-0">
+                            <div class="user-avatar" style="width: 56px; height: 56px; font-size: 1.25rem;">
+                                {{ strtoupper(substr($counselor->name, 0, 1)) }}
+                            </div>
+                        </div>
+                        <div class="col">
+                            <h6 class="text-indigo mb-1" style="color: #6366f1; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px;">Your Admission Mentor</h6>
+                            <h5 class="fw-bold text-white mb-0" style="font-family: 'Outfit';">{{ $counselor->name }}</h5>
+                            <p class="mb-0 text-white-50" style="font-size: 0.85rem;">For any queries: <span class="text-white fw-medium">{{ $counselor->email }}</span></p>
+                        </div>
+                        <div class="col-md-auto mt-3 mt-md-0">
+                            <a href="mailto:{{ $counselor->email }}" class="btn-premium-outline py-2 px-3" style="font-size: 0.85rem;">
+                                <i data-lucide="mail" class="me-2" style="width: 16px;"></i> Send Mail
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             @if (!$application || $application->status == 'draft')
                 <div class="premium-card">
                     <div class="d-flex align-items-center gap-3 mb-4">
@@ -68,7 +91,7 @@
                                 <input type="text" name="first_name"
                                     class="form-control-premium @error('first_name') is-invalid @enderror"
                                     placeholder="First name"
-                                    value="{{ old('first_name', explode(' ', auth('student')->user()->name)[0] ?? '') }}"
+                                    value="{{ old('first_name', $lead ? explode(' ', $lead->name)[0] : (explode(' ', auth('student')->user()->name)[0] ?? '')) }}"
                                     required>
                                 @error('first_name')
                                     <div class="invalid-feedback text-danger" style="font-size: 0.75rem;">{{ $message }}
@@ -80,7 +103,7 @@
                                 <input type="text" name="last_name"
                                     class="form-control-premium @error('last_name') is-invalid @enderror"
                                     placeholder="Last name"
-                                    value="{{ old('last_name', explode(' ', auth('student')->user()->name)[1] ?? '') }}"
+                                    value="{{ old('last_name', $lead ? (explode(' ', $lead->name)[1] ?? '') : (explode(' ', auth('student')->user()->name)[1] ?? '')) }}"
                                     required>
                                 @error('last_name')
                                     <div class="invalid-feedback text-danger" style="font-size: 0.75rem;">{{ $message }}
@@ -102,7 +125,7 @@
                                 <label class="form-label-custom">Mobile</label>
                                 <input type="text" name="mobile"
                                     class="form-control-premium @error('mobile') is-invalid @enderror"
-                                    placeholder="+91 XXXXX XXXXX" value="{{ old('mobile') }}" required>
+                                    placeholder="+91 XXXXX XXXXX" value="{{ old('mobile', $lead->phone ?? '') }}" required>
                                 @error('mobile')
                                     <div class="invalid-feedback text-danger" style="font-size: 0.75rem;">{{ $message }}
                                     </div>
@@ -116,7 +139,7 @@
                                     <option value="">Select a course from the list...</option>
                                     @foreach ($courses as $course)
                                         <option value="{{ $course->id }}"
-                                            {{ old('course_id') == $course->id ? 'selected' : '' }}>{{ $course->name }}
+                                            {{ old('course_id', $lead->course_interested ?? '') == $course->id ? 'selected' : '' }}>{{ $course->name }}
                                         </option>
                                     @endforeach
                                 </select>

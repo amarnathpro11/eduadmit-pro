@@ -11,6 +11,11 @@ class LeadCommunication extends Model
 
     protected $fillable = ['lead_id', 'created_by', 'type', 'message'];
 
+    protected $casts = [
+        'communicated_at' => 'datetime'
+    ];
+
+
     public function lead()
     {
         return $this->belongsTo(Lead::class);

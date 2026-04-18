@@ -95,4 +95,27 @@ class LeadController extends Controller
 
         return back()->with('success', 'Communication added successfully.');
     }
+
+    public function publicCapture(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:leads,email',
+            'phone' => 'required|string',
+            'course_interested' => 'required|exists:courses,id',
+            'source' => 'nullable|string'
+        ]);
+
+        $validated['source'] = $validated['source'] ?? 'Website';
+        $validated['status'] = 'New';
+        $validated['lead_score'] = 10; // Default score
+
+        $lead = Lead::create($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Lead captured successfully!',
+            'data' => $lead
+        ], 201);
+    }
 }

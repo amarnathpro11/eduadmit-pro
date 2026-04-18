@@ -17,32 +17,63 @@
                 <div class="d-flex justify-content-between align-items-start mb-4">
                     <div>
                         @php
+                            $applicationFeeExpected = $application->course->application_fee ?? 0;
                             $admissionFee = $application->course->admission_fee ?? 0;
                             $labFee = $application->course->lab_fee ?? 0;
                             $libraryFee = $application->course->library_fee ?? 0;
                             $maintenanceTotal = $labFee + $libraryFee;
-                            
-                            $baseTotal = $admissionFee + $maintenanceTotal;
-                            $isPaid = false;
-                            if (isset($payments)) {
-                                $isPaid = $payments->where('status', 'success')->sum('amount') >= $baseTotal;
-                            }
-                            $totalBalance = $isPaid ? 0 : $baseTotal;
+                            $totalAdmissionBalance = $admissionFee + $maintenanceTotal;
 
+                            // Check payment history
+                            $paidApp = $payments->where('status', 'success')->where('payment_type', 'application')->sum('amount');
+                            $paidAdm = $payments->where('status', 'success')->where('payment_type', 'admission')->sum('amount');
+
+                            // Handle untagged legacy payments
+                            $untagged = $payments->where('status', 'success')->where('payment_type', null);
+                            foreach($untagged as $p) {
+                                if ($p->amount == $applicationFeeExpected) $paidApp += $p->amount;
+                                else $paidAdm += $p->amount;
+                            }
+
+                            $isAppFeePaid = $paidApp >= $applicationFeeExpected;
+                            $isAdmPaid = $paidAdm >= $totalAdmissionBalance;
+                            
+                            // Determine what to show
+                            $showAmount = 0;
+                            $paymentLabel = "Admission Fee";
+                            $status = $application->status; // applied, submitted_documents, verified, offer_made, etc.
+                            
+                            if (!$isAppFeePaid) {
+                                $showAmount = $applicationFeeExpected;
+                                $paymentLabel = "Application Processing Fee";
+                            } elseif (in_array($status, ['applied', 'submitted_documents', 'verified', 'merit'])) {
+                                // App fee paid, but waiting for verification/merit/offer
+                                $showAmount = 0;
+                                $paymentLabel = "Verification in Progress";
+                            } elseif ($status == 'offer_made' || $status == 'confirmed' || $status == 'enrolled') {
+                                $showAmount = $isAdmPaid ? 0 : $totalAdmissionBalance;
+                                $paymentLabel = "Final Admission Fee";
+                            }
+
+                            $totalBalance = $showAmount;
                             $offerDate = $application->updated_at ?? now();
                             $dueDate = \Carbon\Carbon::parse($offerDate)->addDays(7);
                             $daysRemaining = max(0, ceil(now()->diffInDays($dueDate, false)));
                         @endphp
                         <p class="text-white-50 fw-bold mb-1"
-                            style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;">Total Outstanding
-                            Balance</p>
+                            style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;">{{ $paymentLabel }}</p>
                         <h2 class="fw-bold" style="font-family: 'Outfit'; font-size: 2.5rem; color: #ffffff;">
                             ₹{{ number_format($totalBalance, 2) }}</h2>
                     </div>
-                    @if ($isPaid)
+                    @if ($totalBalance == 0 && $isAppFeePaid && !$isAdmPaid && $status != 'offer_made')
+                        <div class="badge bg-info bg-opacity-10 text-info px-3 py-2"
+                            style="border-radius: 8px; font-weight: 700;">
+                            <i data-lucide="shield-alert" class="me-1" style="width: 14px;"></i> Awaiting Offer
+                        </div>
+                    @elseif ($isAdmPaid || ($isAppFeePaid && $totalBalance == 0 && $status == 'enrolled'))
                         <div class="badge bg-success bg-opacity-10 text-success px-3 py-2"
                             style="border-radius: 8px; font-weight: 700;">
-                            <i data-lucide="check-circle" class="me-1" style="width: 14px;"></i> Paid Successfully
+                            <i data-lucide="check-circle" class="me-1" style="width: 14px;"></i> Fully Set
                         </div>
                     @else
                         <div class="badge bg-warning bg-opacity-10 text-warning px-3 py-2"
@@ -56,17 +87,25 @@
                 <h6 class="fw-bold mb-3 text-white">Fee Breakdown
                     ({{ $application->course->name ?? 'Course Not Selected' }})</h6>
                 <div class="list-group list-group-flush mb-4">
-                    <div class="list-group-item px-0 py-3 d-flex justify-content-between border-bottom border-light"
-                        style="background: transparent;">
-                        <span class="text-white fw-medium">Admission Fee</span>
-                        <span class="fw-bold text-white">₹{{ number_format($admissionFee, 2) }}</span>
-                    </div>
-                    @if($maintenanceTotal > 0)
-                    <div class="list-group-item px-0 py-3 d-flex justify-content-between border-0"
-                        style="background: transparent;">
-                        <span class="text-white fw-medium">Lab & Library Maintenance</span>
-                        <span class="fw-bold text-white">₹{{ number_format($maintenanceTotal, 2) }}</span>
-                    </div>
+                    @if(!$isAppFeePaid)
+                        <div class="list-group-item px-0 py-3 d-flex justify-content-between border-bottom border-light"
+                            style="background: transparent;">
+                            <span class="text-white fw-medium">Application Fee</span>
+                            <span class="fw-bold text-white">₹{{ number_format($applicationFeeExpected, 2) }}</span>
+                        </div>
+                    @else
+                        <div class="list-group-item px-0 py-3 d-flex justify-content-between border-bottom border-light"
+                            style="background: transparent;">
+                            <span class="text-white fw-medium">Admission Fee</span>
+                            <span class="fw-bold text-white">₹{{ number_format($admissionFee, 2) }}</span>
+                        </div>
+                        @if ($maintenanceTotal > 0)
+                            <div class="list-group-item px-0 py-3 d-flex justify-content-between border-0"
+                                style="background: transparent;">
+                                <span class="text-white fw-medium">Lab & Library Maintenance</span>
+                                <span class="fw-bold text-white">₹{{ number_format($maintenanceTotal, 2) }}</span>
+                            </div>
+                        @endif
                     @endif
                 </div>
 
@@ -83,17 +122,29 @@
 
         <div class="col-lg-5">
             <div class="premium-card h-100">
-                @if ($isPaid)
+                @if ($isAdmPaid)
                     <div class="d-flex flex-column justify-content-center align-items-center h-100 text-center p-4">
                         <div class="mb-4"
                             style="width: 80px; height: 80px; background: rgba(16, 185, 129, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                             <i data-lucide="check-circle" style="width: 40px; height: 40px; color: #10b981;"></i>
                         </div>
-                        <h4 class="fw-bold text-white mb-2" style="font-family: 'Outfit';">Payment Complete</h4>
+                        <h4 class="fw-bold text-white mb-2" style="font-family: 'Outfit';">Admission Complete</h4>
                         <p class="text-white-50 mb-4" style="font-size: 0.95rem;">You have successfully cleared your
-                            admission fees. Your enrollment is being finalized.</p>
+                            admission fees. Your enrollment is now official.</p>
                         <a href="{{ route('student.receipts') }}" class="btn-premium-outline">
-                            View Receipts
+                            View All Receipts
+                        </a>
+                    </div>
+                @elseif ($totalBalance == 0 && $isAppFeePaid)
+                    <div class="d-flex flex-column justify-content-center align-items-center h-100 text-center p-4">
+                        <div class="mb-4"
+                            style="width: 80px; height: 80px; background: rgba(99, 102, 241, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="loader" class="spin" style="width: 40px; height: 40px; color: #6366f1;"></i>
+                        </div>
+                        <h4 class="fw-bold text-white mb-2" style="font-family: 'Outfit';">Verification in Progress</h4>
+                        <p class="text-white-50 mb-4" style="font-size: 0.95rem;">You have paid the application fee. Please ensure your documents are uploaded. Our team is verifying your application.</p>
+                        <a href="{{ route('student.status') }}" class="btn-premium-outline">
+                            Check Status
                         </a>
                     </div>
                 @else

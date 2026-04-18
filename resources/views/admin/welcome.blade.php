@@ -101,7 +101,7 @@
 
         <!-- Counselor -->
         <div class="col-md-6">
-            <a href="#" class="role-card">
+            <a href="{{ route('counselor.login') }}" class="role-card">
                 <div class="card-box text-center">
                     <div class="role-icon">💬</div>
                     <div class="role-title">Counselor</div>
@@ -112,7 +112,7 @@
 
         <!-- Accountant -->
         <div class="col-md-6">
-            <a href="{{ route('admin.billing.index') }}" class="role-card">
+            <a href="{{ route('accountant.login') }}" class="role-card">
                 <div class="card-box text-center">
                     <div class="role-icon">💰</div>
                     <div class="role-title">Accountant</div>

@@ -23,9 +23,15 @@ class LeadAssignmentController extends Controller
         // For the design, we'll fetch counselors and calculate their stats
         $counselors = User::whereHas('role', function($q) {
             $q->where('name', 'admin')->orWhere('name', 'counselor');
-        })->withCount(['leads' => function($q) {
-            $q->where('status', '!=', 'Converted');
-        }])->get();
+        })->withCount([
+            'leads as active_leads_count' => function($q) {
+                $q->where('status', '!=', 'Converted');
+            },
+            'leads as converted_leads_count' => function($q) {
+                $q->where('status', 'Converted');
+            },
+            'leads as total_leads_count'
+        ])->get();
 
         // Stats for the header
         $stats = [

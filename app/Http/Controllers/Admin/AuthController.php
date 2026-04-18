@@ -21,22 +21,36 @@ class AuthController extends Controller
     {
         return view("admin.auth.login");
     }
+
+    public function showAccountantLogin()
+    {
+        return view("accountant.auth.login");
+    }
     public function login(Request $request)
     {
         if (Auth::attempt($request->only('email', 'password'))) {
 
             $user = Auth::user();
+            $roleName = $user->role ? $user->role->name : null;
 
-            if (!$user->role || $user->role->name !== 'admin') {
+            if (!in_array($roleName, ['admin', 'accountant', 'counselor'])) {
                 Auth::logout();
-                return back()->withErrors(['email' => 'Not an admin account']);
+                return back()->withErrors(['email' => 'Insufficient permissions for staff portal.']);
             }
 
             $user->update([
                 'last_login_at' => now()
             ]);
 
-            return redirect()->route('admin.dashboard');
+            // Redirect based on role
+            if ($roleName === 'admin') {
+                return redirect()->route('admin.dashboard');
+            } elseif ($roleName === 'accountant') {
+                return redirect()->route('accountant.dashboard');
+            } elseif ($roleName === 'counselor') {
+                // To be implemented or handled
+                return redirect()->route('admin.dashboard')->with('info', 'Counselor module to be finalized.');
+            }
         }
 
         return back()->withErrors(['email' => 'Invalid credentials']);
@@ -69,7 +83,7 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect()->route('admin.login');
+        return redirect()->route('home');
     }
 
     // Password Reset

@@ -10,14 +10,15 @@ class Enrollment extends Model
   use HasFactory;
 
   protected $fillable = [
-    'application_id',
+    'student_id',
+    'user_id',
+    'course_id',
     'enrolled_at',
-    'fee',
   ];
 
   public function application()
   {
-    return $this->belongsTo(Application::class);
+    return $this->belongsTo(Application::class, 'user_id', 'user_id');
   }
 
   public function payments()

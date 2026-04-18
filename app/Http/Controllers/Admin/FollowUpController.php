@@ -12,27 +12,31 @@ class FollowUpController extends Controller
 {
     public function index()
     {
+        // Admin should see all follow-ups and leads
         $followUps = FollowUp::with('lead')
-            ->where('user_id', Auth::id())
             ->orderBy('scheduled_at', 'asc')
             ->get();
 
-        $leads = Lead::where('assigned_to', Auth::id())->get();
+        $leads = Lead::all();
         
         $todayTasks = FollowUp::with('lead')
-            ->where('user_id', Auth::id())
             ->whereDate('scheduled_at', now()->toDateString())
             ->orderBy('scheduled_at', 'asc')
             ->get();
 
         $overdueTasks = FollowUp::with('lead')
-            ->where('user_id', Auth::id())
             ->where('scheduled_at', '<', now())
             ->where('status', 'scheduled')
             ->orderBy('scheduled_at', 'desc')
             ->get();
 
-        return view('admin.follow_ups.index', compact('followUps', 'leads', 'todayTasks', 'overdueTasks'));
+        $completedTasks = FollowUp::with('lead')
+            ->where('status', 'completed')
+            ->orderBy('updated_at', 'desc')
+            ->take(10)
+            ->get();
+
+        return view('admin.follow_ups.index', compact('followUps', 'leads', 'todayTasks', 'overdueTasks', 'completedTasks'));
     }
 
     public function store(Request $request)

@@ -15,9 +15,14 @@ class StudentController extends Controller
   {
     $user = Auth::guard('student')->user();
     $application = Application::where('user_id', $user->id)->first();
+    
+    // Fetch associated lead data with counselor relationship
+    $lead = \App\Models\Lead::where('email', $user->email)->with('assignedTo')->first();
+    $counselor = $lead ? $lead->assignedTo : null;
+    
     $courses = \App\Models\Course::where('is_active', true)->get();
     $quotaCategories = \App\Models\QuotaCategory::where('is_active', true)->get();
-    return view('student.dashboard', compact('application', 'courses', 'quotaCategories'));
+    return view('student.dashboard', compact('application', 'courses', 'quotaCategories', 'lead', 'counselor'));
   }
 
   public function storeRegistration(Request $request)
@@ -35,11 +40,16 @@ class StudentController extends Controller
 
     $user = Auth::guard('student')->user();
 
-    $course = \App\Models\Course::find($request->course_id);
-    $courseCode = $course ? strtoupper($course->code) : 'APP';
+    $application = Application::where('user_id', $user->id)->first();
 
-    $year = date('Y');
-    $applicationNo = $courseCode . '-' . $year . '-' . strtoupper(\Illuminate\Support\Str::random(5));
+    if ($application && $application->application_no) {
+      $applicationNo = $application->application_no;
+    } else {
+      $course = \App\Models\Course::find($request->course_id);
+      $courseName = $course ? strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $course->name)) : 'APP';
+      $year = date('Y');
+      $applicationNo = $courseName . '-' . $year . '-' . strtoupper(\Illuminate\Support\Str::random(5));
+    }
 
     Application::updateOrCreate(
       ['user_id' => $user->id],
@@ -54,11 +64,11 @@ class StudentController extends Controller
         'quota_category_id' => $request->quota_category_id,
         'status' => 'applied',
         'application_no' => $applicationNo,
-        'applied_date' => now()
+        'applied_date' => $application ? $application->applied_date : now()
       ]
     );
 
-    return redirect()->route('student.dashboard')->with('success', 'Registration details saved successfully.');
+    return redirect()->route('student.status')->with('success', 'Registration successful! Please pay the Application Fee to proceed.');
   }
 
   public function status()
@@ -182,7 +192,11 @@ class StudentController extends Controller
     $documents = StudentDocument::where('user_id', $user->id)->get();
     $payments = \App\Models\Payment::where('user_id', $user->id)->where('status', 'success')->get();
 
-    $pdf = Pdf::loadView('student.application_pdf', compact('application', 'user', 'documents', 'payments'));
+    // Fetch counselor for the PDF
+    $lead = \App\Models\Lead::where('email', $user->email)->with('assignedTo')->first();
+    $counselor = $lead ? $lead->assignedTo : null;
+
+    $pdf = Pdf::loadView('student.application_pdf', compact('application', 'user', 'documents', 'payments', 'counselor'));
 
     return $pdf->download('Application_Summary_' . $application->application_no . '.pdf');
   }

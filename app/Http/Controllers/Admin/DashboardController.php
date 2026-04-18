@@ -60,6 +60,23 @@ class DashboardController extends Controller
             $availableYears = [date('Y')];
         }
 
+        // Counselor Performance (Real Data)
+        $counselorPerformance = \App\Models\User::whereHas('role', function($q) {
+                $q->where('name', 'counselor');
+            })
+            ->withCount(['leads as total_leads'])
+            ->withCount(['leads as converted_leads' => function($q) {
+                $q->where('status', 'Converted');
+            }])
+            ->get()
+            ->map(function($counselor) {
+                $total = $counselor->total_leads ?: 1; // avoid division by zero
+                $counselor->conversion_rate = round(($counselor->converted_leads / $total) * 100);
+                return $counselor;
+            })
+            ->sortByDesc('conversion_rate')
+            ->take(5);
+
         return view("admin.dashboard", compact(
             'totalLeads',
             'totalApplications',
@@ -71,7 +88,8 @@ class DashboardController extends Controller
             'sourceCounts',
             'recentApplications',
             'selectedYear',
-            'availableYears'
+            'availableYears',
+            'counselorPerformance'
         ));
     }
 

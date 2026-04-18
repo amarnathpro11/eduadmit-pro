@@ -440,9 +440,6 @@
             <a href="{{ route('admin.reports.index') }}"
                 class="nav-link-item {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}"><i
                     class="fa fa-file"></i> Reports & Logs</a>
-            <a href="{{ route('admin.billing.index') }}"
-                class="nav-link-item {{ request()->routeIs('admin.billing.*') ? 'active' : '' }}"><i
-                    class="fa fa-wallet border-0 rounded"></i> Finance & Billing</a>
 
             <div style="margin-top: auto; padding-top: 20px;">
                 <form method="POST" action="{{ route('admin.logout') }}">

@@ -426,15 +426,21 @@
                 <div class="dark-card profile-card mb-4">
                     @php
                         $photoDoc = $application->documents->where('document_type', 'photo')->first();
+                        $initial = substr($application->user->name ?? $application->first_name, 0, 1);
                     @endphp
                     @if ($photoDoc && $photoDoc->file_path)
-                        <div class="profile-avatar-bg"
-                            style="background-image: url('{{ asset('storage/' . $photoDoc->file_path) }}'); background-size: cover; background-position: center; color: transparent;">
+                        <div class="profile-avatar-bg" style="padding:0; overflow:hidden; position:relative;">
+                            <img src="{{ asset('storage/' . $photoDoc->file_path) }}" 
+                                 style="width:100%; height:100%; object-fit:cover;" 
+                                 onerror="this.style.display='none'; document.getElementById('avatar-fallback').style.display='flex';">
+                            <div id="avatar-fallback" style="display:none; width:100%; height:100%; align-items:center; justify-content:center; color:#10b981; font-weight:800; font-size:2.5rem;">
+                                {{ $initial }}
+                            </div>
                             <div class="profile-check" style="z-index: 2; color: white;"><i class="fa fa-check"></i></div>
                         </div>
                     @else
                         <div class="profile-avatar-bg">
-                            {{ substr($application->user->name ?? $application->first_name, 0, 1) }}
+                            {{ $initial }}
                             <div class="profile-check"><i class="fa fa-check"></i></div>
                         </div>
                     @endif
@@ -569,9 +575,14 @@
                 </div>
 
                 <div class="post-action-card">
-                    <div class="post-action-label"><i class="fa fa-info-circle"></i> POST-ACTION STATE</div>
-                    <div class="post-action-title">ID Generation System</div>
-                    <p class="post-action-desc">The Enrollment Number will appear here after confirmation.</p>
+                    <div class="post-action-label"><i class="fa fa-info-circle"></i> STUDENT ID SYSTEM</div>
+                    @if ($application->status == 'enrolled' && $application->enrollment && $application->enrollment->student_id)
+                        <div class="post-action-title" style="color: #10b981; font-size: 1.2rem;">{{ $application->enrollment->student_id }}</div>
+                        <p class="post-action-desc text-white">Permanent Student ID has been generated securely.</p>
+                    @else
+                        <div class="post-action-title">Pending Generation</div>
+                        <p class="post-action-desc">A unique Student ID (e.g., {{ strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $application->course->code ?? $application->course->name ?? 'GEN')) }}STU{{date('Y')}}XXXX) will be automatically generated and assigned upon final approval.</p>
+                    @endif
                 </div>
             </div>
         </div>

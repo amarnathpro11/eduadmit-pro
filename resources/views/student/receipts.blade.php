@@ -20,7 +20,26 @@
                                 <h6 class="mb-1"
                                     style="font-family: 'Outfit'; font-weight: 700; font-size: 1.1rem; color: #3b82f6;">
                                     REC-{{ str_pad($payment->id, 5, '0', STR_PAD_LEFT) }}</h6>
-                                <p class="mb-1" style="font-weight: 500; font-size: 0.95rem;">Admission / Course Fee</p>
+                                @php
+                                    $paymentType = $payment->payment_type;
+                                    if (!$paymentType) {
+                                        $course = $payment->application->course ?? ($payment->user && $payment->user->applications->count() > 0 ? $payment->user->applications->first()->course : null);
+                                        if ($course) {
+                                            $totalAdm = $course->admission_fee + $course->lab_fee + $course->library_fee;
+                                            if (round($payment->amount) == round($course->application_fee)) {
+                                                $paymentType = 'application_fee';
+                                            } elseif (round($payment->amount) == round($totalAdm) || round($payment->amount) == round($course->admission_fee)) {
+                                                $paymentType = 'admission_fee';
+                                            } else {
+                                                // Fallback to previous logic for other cases
+                                                $paymentType = ($payment->amount < 1500 && $payment->amount != $totalAdm) ? 'application_fee' : 'admission_fee';
+                                            }
+                                        } else {
+                                            $paymentType = 'admission_fee';
+                                        }
+                                    }
+                                @endphp
+                                <p class="mb-1" style="font-weight: 500; font-size: 0.95rem;">{{ str_replace('_', ' ', ucwords($paymentType)) }}</p>
                                 <p class="mb-0 text-muted" style="font-size: 0.8rem;">
                                     {{ $payment->created_at->format('M d, Y') }} • Online</p>
                             </div>

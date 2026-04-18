@@ -182,9 +182,20 @@
                                                 {{ $statusLabel }}
                                             </span>
 
-                                            @if($app->payments->where('status', 'success')->count() > 0)
+                                            @php
+                                                $hasAppFee = $app->payments->where('status', 'success')->where('payment_type', 'application')->count() > 0;
+                                                $hasAdmFee = $app->payments->where('status', 'success')->where('payment_type', 'admission')->count() > 0;
+                                            @endphp
+
+                                            @if($hasAppFee)
                                                 <span class="badge bg-primary bg-opacity-20 text-info px-2 py-1 border border-info border-opacity-25" style="width: fit-content;">
-                                                    <i class="fa fa-receipt me-1 small"></i> PAID
+                                                    <i class="fa fa-receipt me-1 small"></i> APP FEE PAID
+                                                </span>
+                                            @endif
+                                            
+                                            @if($hasAdmFee)
+                                                <span class="badge bg-success bg-opacity-20 text-white px-2 py-1 border border-success border-opacity-25" style="width: fit-content;">
+                                                    <i class="fa fa-receipt me-1 small"></i> ADM FEE PAID
                                                 </span>
                                             @endif
                                         </div>

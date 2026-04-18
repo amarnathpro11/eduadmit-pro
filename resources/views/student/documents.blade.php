@@ -18,8 +18,8 @@
     </div>
 
     @if (session('success'))
-        <div class="alert alert-success bg-success bg-opacity-10 border-success border-opacity-10 text-success p-3 mb-4 d-flex align-items-center gap-3"
-            style="border-radius: 16px;">
+        <div id="success-alert" class="alert alert-success bg-success bg-opacity-10 border-success border-opacity-10 text-success p-3 mb-4 d-flex align-items-center gap-3"
+            style="border-radius: 16px; transition: opacity 0.5s ease;">
             <div
                 style="width: 32px; height: 32px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
                 <i data-lucide="check" style="width: 16px;"></i>
@@ -29,8 +29,8 @@
     @endif
 
     @if (session('error') || $errors->any())
-        <div class="alert alert-danger bg-danger bg-opacity-10 border-danger border-opacity-10 text-danger p-3 mb-4"
-            style="border-radius: 16px;">
+        <div id="error-alert" class="alert alert-danger bg-danger bg-opacity-10 border-danger border-opacity-10 text-danger p-3 mb-4"
+            style="border-radius: 16px; transition: opacity 0.5s ease;">
             <div class="d-flex align-items-center gap-3 mb-2">
                 <div
                     style="width: 32px; height: 32px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
@@ -248,5 +248,24 @@
             document.getElementById('loader-' + id).classList.remove('d-none');
             document.getElementById('content-' + id).classList.add('opacity-25');
         }
+
+        // Auto-dismiss alerts after 4 seconds
+        setTimeout(function() {
+            var successAlert = document.getElementById('success-alert');
+            if (successAlert) {
+                successAlert.style.opacity = '0';
+                setTimeout(() => successAlert.remove(), 500);
+            }
+            
+            // Note: Error alerts conventionally stay visible to ensure the user reads them
+            // But if you prefer them to disappear too, uncomment below:
+            /*
+            var errorAlert = document.getElementById('error-alert');
+            if (errorAlert) {
+                errorAlert.style.opacity = '0';
+                setTimeout(() => errorAlert.remove(), 500);
+            }
+            */
+        }, 4000);
     </script>
 @endsection

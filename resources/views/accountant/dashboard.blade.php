@@ -174,11 +174,6 @@
             border: 1px solid rgba(255,255,255,0.1);
         }
         
-        .bell-icon:hover {
-            background: rgba(255,255,255,0.1);
-            color: #3b82f6;
-        }
-        
         .bell-dot {
             position: absolute;
             top: 8px;
@@ -444,7 +439,6 @@
             letter-spacing: 0;
         }
 
-        /* Fee Table styling */
         .fee-item {
             display: flex;
             justify-content: space-between;
@@ -454,10 +448,6 @@
             color: #cbd5e1;
         }
         
-        .fee-item:last-of-type {
-            border-bottom: none;
-        }
-
         .fee-amount {
             font-weight: 600;
             color: #ffffff;
@@ -485,7 +475,6 @@
             text-shadow: 0 0 20px rgba(59,130,246,0.3);
         }
 
-        /* Record Payment Box */
         .record-payment-box {
             background: rgba(0,0,0,0.2);
             border-radius: 16px;
@@ -585,11 +574,6 @@
             font-size: 1.1rem;
         }
 
-        .btn-outline:hover {
-            background: rgba(255,255,255,0.1);
-            color: #ffffff;
-        }
-
         .compliance-alert {
             display: flex;
             align-items: flex-start;
@@ -620,26 +604,25 @@
             margin: 0;
             line-height: 1.5;
         }
-        
-        /* Back to Admin link */
-        .back-to-admin {
+
+        .logout-btn {
             margin-top: auto;
-            color: #94a3b8;
+            color: #ef4444;
             text-decoration: none;
-            font-weight: 500;
-            font-size: 0.85rem;
+            font-weight: 600;
+            font-size: 0.9rem;
             display: flex;
             align-items: center;
             padding: 12px 16px;
             border-radius: 10px;
             transition: 0.2s;
-            border: 1px solid rgba(255,255,255,0.05);
-            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(239, 68, 68, 0.1);
+            background: rgba(239, 68, 68, 0.05);
         }
-        .back-to-admin:hover {
-            background: rgba(255,255,255,0.05);
-            color: #ffffff;
-            border-color: rgba(255,255,255,0.1);
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border-color: rgba(239, 68, 68, 0.3);
         }
     </style>
 </head>
@@ -655,10 +638,13 @@
             <span class="brand-text">Edu<span>Admit</span> Pro</span>
         </a>
 
-        <a href="#" class="nav-item active">
+        <a href="{{ route('accountant.dashboard', ['type' => 'admission']) }}" class="nav-item {{ request('type', 'admission') == 'admission' ? 'active' : '' }}">
             <i class="fa fa-file-invoice"></i> Admission Billing
         </a>
-        <a href="#" class="nav-item">
+        <a href="{{ route('accountant.dashboard', ['type' => 'application']) }}" class="nav-item {{ request('type') == 'application' ? 'active' : '' }}">
+            <i class="fa fa-receipt"></i> Application Fees
+        </a>
+        <a href="{{ route('accountant.payment_history') }}" class="nav-item">
             <i class="fa fa-clock-rotate-left"></i> Payment History
         </a>
         <a href="#" class="nav-item">
@@ -668,9 +654,12 @@
             <i class="fa fa-chart-pie"></i> Collections Analytics
         </a>
         
-        <a href="{{ route('admin.dashboard') }}" class="back-to-admin">
-            <i class="fa fa-arrow-left me-2"></i> Back to Main Admin
-        </a>
+        <form action="{{ route('admin.logout') }}" method="POST" class="mt-auto">
+            @csrf
+            <button type="submit" class="logout-btn w-100 border-0">
+                <i class="fa fa-sign-out-alt me-2"></i> Logout
+            </button>
+        </form>
     </div>
 
     <!-- Main Content -->
@@ -681,13 +670,13 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="filter: invert(1); opacity: 0.5;"></button>
         </div>
         @endif
+
         <!-- Top Header -->
         <div class="top-header">
             <div class="header-tabs">
                 <a href="#" class="header-tab active">Billing & Receipts</a>
-                <a href="#" class="header-tab">Financial Reports</a>
+                <a href="{{ route('accountant.exportReport') }}" class="header-tab"><i class="fa fa-file-pdf text-danger me-1"></i> Fee Report</a>
                 <a href="#" class="header-tab">Ledger</a>
-                <a href="#" class="header-tab">Configuration</a>
             </div>
             
             <div class="header-actions">
@@ -695,7 +684,13 @@
                     <i class="fa fa-bell"></i>
                     <span class="bell-dot"></span>
                 </a>
-                <img src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name ?? 'Admin') }}&background=3b82f6&color=fff" alt="User" class="user-avatar">
+                <div class="d-flex align-items-center">
+                    <div class="text-end me-3 d-none d-md-block">
+                        <div class="fw-bold text-white mb-0" style="font-size: 0.85rem">{{ auth()->user()->name }}</div>
+                        <div class="text-secondary" style="font-size: 0.7rem">Accountant Portal</div>
+                    </div>
+                    <img src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&background=3b82f6&color=fff" alt="User" class="user-avatar">
+                </div>
             </div>
         </div>
 
@@ -705,7 +700,7 @@
                 <div class="metric-card">
                     <div class="metric-title">TOTAL REVENUE TODAY</div>
                     <div class="metric-value">
-                        ₹{{ number_format($totalRevenueToday, 0) }} <!-- Using INR symbol generally for this project -->
+                        ₹{{ number_format($totalRevenueToday, 0) }}
                     </div>
                 </div>
             </div>
@@ -730,12 +725,9 @@
             </div>
             <div class="col-md-3">
                 <div class="metric-card">
-                    <div class="metric-title">FEE COLLECTION RATE (%)</div>
-                    <div class="metric-value">
-                        {{ $feeCollectionRate }}% 
-                        <span class="custom-progress">
-                            <div class="custom-progress-bar" style="width: {{ $feeCollectionRate }}%"></div>
-                        </span>
+                    <div class="metric-title">OUTSTANDING DUES</div>
+                    <div class="metric-value" style="color: #f87171;">
+                        ₹{{ number_format($outstandingDues, 0) }}
                     </div>
                 </div>
             </div>
@@ -743,11 +735,13 @@
 
         <!-- Panels Row -->
         <div class="row g-4" style="flex: 1;" id="billing-main-content">
-            <!-- Awaiting Payment Panel -->
             <div class="col-lg-4">
                 <div class="panel">
                     <div class="panel-header border-b">
-                        <div class="panel-title"><i class="fa fa-hourglass-half"></i> Awaiting Payment</div>
+                        <div class="panel-title">
+                            <i class="{{ request('type') == 'application' ? 'fa fa-user-clock' : 'fa fa-hourglass-half' }}"></i> 
+                            {{ request('type') == 'application' ? 'Awaiting Application Fee' : 'Awaiting Admission Fee' }}
+                        </div>
                         <div class="search-wrapper">
                             <i class="fa fa-search"></i>
                             <input type="text" class="search-input" placeholder="Search by name or ID...">
@@ -777,12 +771,10 @@
                 </div>
             </div>
             
-            <!-- Billing Details Panel -->
             <div class="col-lg-8">
                 <div class="panel">
                     @if(count($awaitingPaymentStudents) > 0)
                     <div class="billing-panel" id="billingPanel">
-                        <!-- Content injected via JS -->
                     </div>
                     @else
                     <div class="billing-panel d-flex align-items-center justify-content-center flex-column text-muted py-5 h-100" style="min-height: 400px;">
@@ -793,7 +785,6 @@
                     @endif
                 </div>
             </div>
-            
         </div>
     </div>
 </div>
@@ -853,77 +844,13 @@
 <script>
     const studentsData = @json($awaitingPaymentStudents);
     
-    // Header Tabs Interactivity
-    document.querySelectorAll('.header-tab').forEach(tab => {
-        tab.addEventListener('click', function(e) {
-            e.preventDefault();
-            document.querySelectorAll('.header-tab').forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-            
-            // Simple Coming Soon state if not the first tab
-            if(this.innerText !== "Billing & Receipts") {
-                document.getElementById('billing-main-content').style.display = 'none';
-                if(!document.getElementById('coming-soon-panel')) {
-                    const comingSoon = document.createElement('div');
-                    comingSoon.id = 'coming-soon-panel';
-                    comingSoon.className = 'd-flex align-items-center justify-content-center flex-column py-5 mt-5';
-                    comingSoon.innerHTML = '<i class="fa fa-tools fa-4x mb-4 text-secondary" style="opacity:0.3"></i><h4 class="text-white">Module Under Development</h4><p class="text-secondary">This section will be available in the next update.</p>';
-                    document.querySelector('.main-content').appendChild(comingSoon);
-                } else {
-                    document.getElementById('coming-soon-panel').style.display = 'flex';
-                }
-            } else {
-                document.getElementById('billing-main-content').style.display = 'flex';
-                if(document.getElementById('coming-soon-panel')) {
-                    document.getElementById('coming-soon-panel').style.display = 'none';
-                }
-            }
-        });
-    });
-
-    // Sidebar Interactivity
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.addEventListener('click', function(e) {
-            if(this.getAttribute('href') === '#') {
-                e.preventDefault();
-                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-                this.classList.add('active');
-                
-                // Show coming soon if not Admission Billing
-                if(this.innerText.includes("Admission Billing")) {
-                    document.getElementById('billing-main-content').style.display = 'flex';
-                    document.querySelector('.top-header').style.display = 'flex';
-                    if(document.getElementById('coming-soon-panel')) {
-                        document.getElementById('coming-soon-panel').style.display = 'none';
-                    }
-                } else {
-                    document.getElementById('billing-main-content').style.display = 'none';
-                    document.querySelector('.top-header').style.display = 'none';
-                    
-                    if(!document.getElementById('coming-soon-panel')) {
-                        const comingSoon = document.createElement('div');
-                        comingSoon.id = 'coming-soon-panel';
-                        comingSoon.className = 'd-flex align-items-center justify-content-center flex-column py-5 mt-5';
-                        comingSoon.innerHTML = '<i class="fa fa-tools fa-4x mb-4 text-secondary" style="opacity:0.3"></i><h4 class="text-white">Module Under Development</h4><p class="text-secondary">This section will be available in the next update.</p>';
-                        document.querySelector('.main-content').appendChild(comingSoon);
-                    } else {
-                        document.getElementById('coming-soon-panel').style.display = 'flex';
-                    }
-                }
-            }
-        });
-    });
-
     function selectStudent(index, element) {
-        // Update selection UI
         document.querySelectorAll('.student-item').forEach(item => {
             item.classList.remove('selected');
             item.querySelector('.selected-badge').style.display = 'none';
         });
         element.classList.add('selected');
         element.querySelector('.selected-badge').style.display = 'block';
-        
-        // Update Panel UI
         renderBillingPanel(studentsData[index]);
     }
 
@@ -934,16 +861,50 @@
         const formattedTotal = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(student.pending_amount);
         const formattedExpected = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(student.expected_fee);
         
-        // Simulating the fee breakdown based on expected fee
-        const tuition = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(student.tuition);
-        const library = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(student.library);
-        const lab = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(student.lab);
-        const health = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(student.health);
+        let feeListHtml = '';
+        if(student.is_application) {
+            feeListHtml = `
+                <div class="fee-item">
+                    <span>Application Processing Fee</span>
+                    <span class="fee-amount">${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(student.pending_amount)}</span>
+                </div>
+                <div class="muted mt-3 small">This fee is required for document verification and initial processing.</div>
+            `;
+        } else {
+            const tuition = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(student.tuition);
+            const library = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(student.library);
+            const lab = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(student.lab);
+            const application = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(student.application);
+            const health = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(student.health);
+            
+            feeListHtml = `
+                <div class="fee-item">
+                    <span>Course Fee (Admission)</span>
+                    <span class="fee-amount">${tuition}</span>
+                </div>
+                <div class="fee-item">
+                    <span>Application Processing Fee</span>
+                    <span class="fee-amount">${application}</span>
+                </div>
+                <div class="fee-item">
+                    <span>Library & E-Resources</span>
+                    <span class="fee-amount">${library}</span>
+                </div>
+                <div class="fee-item">
+                    <span>Laboratory / Tech Fee</span>
+                    <span class="fee-amount">${lab}</span>
+                </div>
+                <div class="fee-item">
+                    <span>Health & Student Services</span>
+                    <span class="fee-amount">${health}</span>
+                </div>
+            `;
+        }
 
         panel.innerHTML = `
             <div class="billing-header">
                 <div>
-                    <h4 class="billing-title">Billing Details</h4>
+                    <h4 class="billing-title">${student.is_application ? 'Application Fee' : 'Admission Billing'}</h4>
                     <div class="billing-subtitle">Student ID: ${student.id} | Course: ${student.course_name}</div>
                 </div>
                 <div class="date-generated">
@@ -953,26 +914,11 @@
             </div>
             
             <div class="fee-list">
-                <div class="fee-item">
-                    <span>Tuition Fee (Semester 1)</span>
-                    <span class="fee-amount">${tuition}</span>
-                </div>
-                <div class="fee-item">
-                    <span>Library Access & Resources</span>
-                    <span class="fee-amount">${library}</span>
-                </div>
-                <div class="fee-item">
-                    <span>Laboratory & Technology Fee</span>
-                    <span class="fee-amount">${lab}</span>
-                </div>
-                <div class="fee-item">
-                    <span>Student Health Insurance & Extracurriculars</span>
-                    <span class="fee-amount">${health}</span>
-                </div>
+                ${feeListHtml}
             </div>
             
             <div class="total-row" style="padding-top: 15px; margin-top: 15px;">
-                <div class="total-label" style="font-size: 1rem; color: #94a3b8;">Total Course Fee</div>
+                <div class="total-label" style="font-size: 1rem; color: #94a3b8;">Total ${student.is_application ? 'Payable' : 'Course Fee'}</div>
                 <div class="total-amount" style="font-size: 1.25rem; color: #cbd5e1;">${formattedExpected}</div>
             </div>
             
@@ -981,10 +927,11 @@
                 <div class="total-amount">${formattedTotal}</div>
             </div>
             
-            <form action="{{ route('admin.billing.store') }}" method="POST" id="paymentForm" onsubmit="document.getElementById('submitBtn').innerHTML = '<i class=\\'fa fa-spinner fa-spin\\'></i> Processing...'; document.getElementById('submitBtn').disabled = true;">
+            <form action="{{ route('accountant.storePayment') }}" method="POST" id="paymentForm" onsubmit="document.getElementById('submitBtn').innerHTML = '<i class=\\'fa fa-spinner fa-spin\\'></i> Processing...'; document.getElementById('submitBtn').disabled = true;">
                 @csrf
                 <input type="hidden" name="user_id" value="${student.user_id}">
                 <input type="hidden" name="amount" value="${student.pending_amount}">
+                <input type="hidden" name="type" value="{{ request('type', 'admission') }}">
                 
                 <div class="record-payment-box">
                     <div class="box-title">
@@ -1015,17 +962,16 @@
                 </div>
             </form>
             
-            <div class="compliance-alert">
+            <div class="compliance-alert" style="margin-bottom: 20px;">
                 <i class="fa fa-check-circle"></i>
                 <div class="compliance-alert-content">
                     <h6>Accounting Policy Compliance</h6>
-                    <p>Receipts generated are official documents. Ensure transaction IDs are verified against bank statements before final confirm and applying.</p>
+                    <p>Receipts generated are official documents. Ensure transaction IDs are verified against bank statements before final confirmation.</p>
                 </div>
             </div>
         `;
     }
 
-    // Initialize first student on load if available
     window.onload = () => {
         if(studentsData && studentsData.length > 0) {
             renderBillingPanel(studentsData[0]);

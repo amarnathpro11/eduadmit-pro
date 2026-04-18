@@ -121,6 +121,12 @@
             <td class="info-label">Submission Date</td>
             <td class="info-value">{{ $application->created_at->format('d M, Y h:i A') }}</td>
         </tr>
+        @if ($counselor)
+        <tr>
+            <td class="info-label">Assigned Counselor</td>
+            <td class="info-value"><strong>{{ $counselor->name }}</strong> ({{ $counselor->email }})</td>
+        </tr>
+        @endif
     </table>
 
     <div class="section-title">Personal Details</div>

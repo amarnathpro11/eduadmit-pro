@@ -32,10 +32,11 @@ class FinalAdmissionController extends Controller
         
         $paidAmount = \App\Models\Payment::where('user_id', $application->user_id)->where('status', 'success')->sum('amount');
         
-        // Fee is considered paid if the student has successful payments. 
-        // We'll be more lenient here: as long as they have paid the registration/admission amount, it's a pass.
-        $feePaid = \App\Models\Payment::where('user_id', $application->user_id)->where('status', 'success')->exists();
-
+        // Fee is considered paid if the student has paid the admission fee successfully. 
+        $feePaid = \App\Models\Payment::where('user_id', $application->user_id)
+            ->where('status', 'success')
+            ->where('payment_type', 'admission')
+            ->exists();
         $meritThreshold = $application->quotaCategory->merit_threshold ?? 60;
         $meritScore = $application->merit_score ?? (($application->tenth_percentage + $application->twelfth_percentage) / 2);
         $eligibilityMet = $meritScore >= $meritThreshold; 
@@ -57,7 +58,19 @@ class FinalAdmissionController extends Controller
 
         $application->save();
 
-        return redirect()->route('admin.final_admission.index')->with('success', 'Admission approved and student officially enrolled.');
+        // Generate Student ID and create Enrollment
+        $courseCode = $application->course ? strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $application->course->code ?? $application->course->name)) : 'GEN';
+        $studentId = $courseCode . 'STU' . date('Y') . strtoupper(\Illuminate\Support\Str::random(4));
+
+        \App\Models\Enrollment::updateOrCreate(
+            ['user_id' => $application->user_id, 'course_id' => $application->course_id],
+            [
+                'student_id' => $studentId,
+                'enrolled_at' => now()
+            ]
+        );
+
+        return redirect()->route('admin.final_admission.index')->with('success', 'Admission approved. Student officially enrolled with ID: ' . $studentId);
     }
 
     public function reject(Request $request, $id)

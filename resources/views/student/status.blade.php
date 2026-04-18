@@ -41,9 +41,9 @@
                     'applied' => 1,
                     'pending' => 1,
                     'submitted_documents' => 1,
-                    'verified' => 2,
-                    'merit' => 3,
-                    'offer_made' => 4,
+                    'verified' => 3,
+                    'merit' => 4,
+                    'offer_made' => 5,
                     'confirmed' => 5,
                     'enrolled' => 5,
                 ];
@@ -51,17 +51,42 @@
 
                 // Payment Status
                 $isPaid = false;
+                $isApplicationPaid = false;
+                
                 if (isset($payments)) {
                     $admissionFee = $application->course->admission_fee ?? 0;
                     $labFee = $application->course->lab_fee ?? 0;
                     $libraryFee = $application->course->library_fee ?? 0;
-                    $totalBalance = $admissionFee + $labFee + $libraryFee;
-                    $isPaid =
-                        $payments->where('status', 'success')->sum('amount') >= $totalBalance && $totalBalance > 0;
+                    $applicationFeeExpected = $application->course->application_fee ?? 0;
+
+                    $totalAdmissionBalance = $admissionFee + $labFee + $libraryFee;
+                    
+                    // Count tagged payments first
+                    $paidAdm = $payments->where('payment_type', 'admission')->sum('amount');
+                    $paidApp = $payments->where('payment_type', 'application')->sum('amount');
+                    
+                    // Handle untagged records for legacy compatibility
+                    // Compare exactly against course fee amounts for this student
+                    $untagged = $payments->where('payment_type', null);
+                    foreach($untagged as $p) {
+                        if ($p->amount == $applicationFeeExpected) {
+                            $paidApp += $p->amount;
+                        } elseif ($p->amount == $admissionFee || $p->amount == $totalAdmissionBalance) {
+                            $paidAdm += $p->amount;
+                        } elseif ($p->amount < $applicationFeeExpected + 100) {
+                            // If it's roughly the application fee amount
+                            $paidApp += $p->amount;
+                        } else {
+                            $paidAdm += $p->amount;
+                        }
+                    }
+                    
+                    $isPaid = $paidAdm >= $totalAdmissionBalance && $totalAdmissionBalance > 0;
+                    $isApplicationPaid = $paidApp >= $applicationFeeExpected;
                 }
 
-                // Determine visual progress (if paid, we are at least at step 5)
-                $currentIndex = max($dbIndex, $isPaid ? 5 : 0);
+                // Determine visual progress (if application fee is paid, we are at least at step 1)
+                $currentIndex = max($dbIndex, ($isApplicationPaid ? 1 : 0), ($isPaid ? 5 : 0));
 
                 $steps = [
                     [
@@ -77,10 +102,10 @@
                     [
                         'label' => 'Verified',
                         'sub' =>
-                            $dbIndex >= 2 ? 'Verified' : ($isDocsCompleted ? 'Awaiting Approval' : 'Pending Uploads'),
+                            $dbIndex >= 3 ? 'Verified' : ($isDocsCompleted ? 'Awaiting Approval' : 'Pending Uploads'),
                     ],
-                    ['label' => 'Merit List', 'sub' => $dbIndex >= 3 ? 'Selected' : 'Upcoming'],
-                    ['label' => 'Offer Made', 'sub' => $dbIndex >= 4 ? 'Accepted' : 'Pending'],
+                    ['label' => 'Merit List', 'sub' => $dbIndex >= 4 ? 'Selected' : 'Upcoming'],
+                    ['label' => 'Offer Made', 'sub' => $dbIndex >= 5 ? 'Ready' : 'Pending'],
                     ['label' => 'Enrolled', 'sub' => $isPaid ? 'Paid' : 'Finalized'],
                 ];
             @endphp
@@ -221,25 +246,50 @@
                         style="width: 48px; height: 48px; background-color: rgba(255, 255, 255, 0.2); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: #ffffff; margin-bottom: 2rem;">
                         <i data-lucide="sparkles" style="width: 24px;"></i>
                     </div>
-                    <h4 class="fw-bold mb-3" style="font-family: 'Outfit';">Almost There!</h4>
-                    <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem; line-height: 1.6;">Your admission offer
-                        will be triggered as soon as document verification is complete.</p>
-
-                    @php $isOfferMade = $currentIndex >= 4; @endphp
-
-                    @if ($isOfferMade)
-                        <a href="{{ route('student.payment') }}"
-                            class="btn-premium-primary w-100 py-3 mt-3 d-flex align-items-center justify-content-center gap-2"
-                            style="background: #ffffff; color: #6366f1;">
-                            Fee Payment <i data-lucide="arrow-right" style="width: 18px;"></i>
-                        </a>
+                    <h4 class="fw-bold mb-3" style="font-family: 'Outfit';">Next Steps</h4>
+                    
+                    @if (!$isApplicationPaid)
+                        <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem; line-height: 1.6;">Please pay the initial **Application Processing Fee** of ₹{{ number_format($application->course->application_fee, 2) }} to start your verification process.</p>
+                        
+                        <form action="{{ route('student.payment.process') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="amount" value="{{ $application->course->application_fee }}">
+                            <input type="hidden" name="type" value="application">
+                            <button type="submit" class="btn-premium-primary w-100 py-3 mt-3 d-flex align-items-center justify-content-center gap-2" style="background: #ffffff; color: #6366f1;">
+                                Pay Application Fee <i data-lucide="credit-card" style="width: 18px;"></i>
+                            </button>
+                        </form>
                     @else
-                        <button
-                            class="btn btn-secondary w-100 py-3 mt-3 d-flex align-items-center justify-content-center gap-2"
-                            disabled
-                            style="background: rgba(255,255,255,0.1); border: 1px dashed rgba(255,255,255,0.2); color: rgba(255,255,255,0.4);">
-                            <i data-lucide="lock" style="width: 18px;"></i> Fee Payment
-                        </button>
+                        @if ($isPaid)
+                            <p style="color: rgba(16, 185, 129, 0.8); font-size: 0.9rem; line-height: 1.6;">
+                                Congratulations! Your admission fee is paid and your seat is secured.
+                            </p>
+                            <button class="btn btn-secondary w-100 py-3 mt-3 d-flex align-items-center justify-content-center gap-2" disabled style="background: rgba(16, 185, 129, 0.1); border: 1px dashed rgba(16, 185, 129, 0.2); color: #10b981;">
+                                <i data-lucide="check-circle" style="width: 18px;"></i> Enrollment Confirmed
+                            </button>
+                        @else
+                            <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem; line-height: 1.6;">
+                                {{ $currentIndex >= 5 ? 'Great news! Your offer is ready. Pay the admission fee to secure your seat.' : 'Your application fee is paid. Document verification is in progress. Offer will be triggered soon.' }}
+                            </p>
+
+                            @if ($currentIndex >= 5)
+                                @php 
+                                    $pendingAdmission = $totalAdmissionBalance - $paidAdm;
+                                @endphp
+                                <form action="{{ route('student.payment.process') }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="amount" value="{{ $pendingAdmission }}">
+                                    <input type="hidden" name="type" value="admission">
+                                    <button type="submit" class="btn-premium-primary w-100 py-3 mt-3 d-flex align-items-center justify-content-center gap-2" style="background: #ffffff; color: #6366f1;">
+                                        Pay Admission Fee (₹{{ number_format($pendingAdmission, 2) }}) <i data-lucide="arrow-right" style="width: 18px;"></i>
+                                    </button>
+                                </form>
+                            @else
+                                <button class="btn btn-secondary w-100 py-3 mt-3 d-flex align-items-center justify-content-center gap-2" disabled style="background: rgba(255,255,255,0.1); border: 1px dashed rgba(255,255,255,0.2); color: rgba(255,255,255,0.4);">
+                                    <i data-lucide="lock" style="width: 18px;"></i> Admission Fee
+                                </button>
+                            @endif
+                        @endif
                     @endif
                 </div>
             </div>

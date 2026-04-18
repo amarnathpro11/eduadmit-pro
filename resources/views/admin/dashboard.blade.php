@@ -163,21 +163,25 @@
             <div class="dashboard-card p-4">
                 <h5 class="text-white mb-4">Counselor Performance</h5>
 
-                @foreach ([['name' => 'Riya Verma', 'percent' => 92, 'color' => 'success'], ['name' => 'Amit Joshi', 'percent' => 87, 'color' => 'info'], ['name' => 'Pooja Nair', 'percent' => 79, 'color' => 'warning']] as $counselor)
+                @forelse($counselorPerformance as $counselor)
                     <div class="mb-3">
                         <div class="d-flex justify-content-between">
-                            <span>{{ $counselor['name'] }}</span>
-                            <span class="text-{{ $counselor['color'] }}">
-                                {{ $counselor['percent'] }}%
+                            <span>{{ $counselor->name }}</span>
+                            <span class="text-primary">
+                                {{ $counselor->conversion_rate }}%
                             </span>
                         </div>
                         <div class="progress bg-dark">
-                            <div class="progress-bar bg-{{ $counselor['color'] }}"
-                                style="width: {{ $counselor['percent'] }}%">
+                            <div class="progress-bar bg-primary"
+                                style="width: {{ $counselor->conversion_rate }}%">
                             </div>
                         </div>
                     </div>
-                @endforeach
+                @empty
+                    <div class="text-center py-4 text-muted">
+                        No performance data available
+                    </div>
+                @endforelse
 
             </div>
         </div>

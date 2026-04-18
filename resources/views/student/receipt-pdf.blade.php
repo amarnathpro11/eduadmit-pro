@@ -161,6 +161,28 @@
 <body>
 
     <div class="receipt-container">
+        @php
+            $paymentType = $payment->payment_type;
+            if (!$paymentType) {
+                // Get course fees for intelligence
+                $app = $payment->application ?? ($payment->user && $payment->user->applications ? $payment->user->applications->first() : null);
+                $course = $app ? $app->course : null;
+                
+                if ($course) {
+                    $totalAdm = $course->admission_fee + ($course->lab_fee ?? 0) + ($course->library_fee ?? 0);
+                    if ($payment->amount == $course->application_fee) {
+                        $paymentType = 'application_fee';
+                    } elseif ($payment->amount == $totalAdm || $payment->amount == $course->admission_fee) {
+                        $paymentType = 'admission_fee';
+                    } else {
+                        // Fallback
+                        $paymentType = ($payment->amount < 1500 && $payment->amount != $totalAdm) ? 'application_fee' : 'admission_fee';
+                    }
+                } else {
+                    $paymentType = 'admission_fee';
+                }
+            }
+        @endphp
 
         <!-- Header -->
         <div class="header">
@@ -216,7 +238,7 @@
             <tbody>
                 <tr>
                     <td>
-                        <div style="font-weight: bold; color: #111827;">Admission / Course Fee</div>
+                        <div style="font-weight: bold; color: #111827;">{{ str_replace('_', ' ', ucwords($paymentType)) }}</div>
                         @if ($application && $application->course)
                             <div style="font-size: 13px; color: #6b7280; margin-top: 4px;">
                                 {{ $application->course->name }}</div>
