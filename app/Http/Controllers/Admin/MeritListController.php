@@ -42,36 +42,36 @@ class MeritListController extends Controller
         return view('admin.merit_list.index', compact('applications', 'stats', 'courses', 'status'));
     }
 
-    public function generate()
+    public function generate(Request $request)
     {
-        // Calculate merit score based on 10th and 12th percentage since there is no entrance exam.
-        // We calculate an average of both percentages as the merit score.
-        $applications = Application::with('quotaCategory')->whereIn('status', ['verified', 'confirmed'])->get();
+        $request->validate([
+            'course_id' => 'required|exists:courses,id',
+            'cutoff_score' => 'required|numeric|min:0|max:100',
+        ]);
+
+        $applications = Application::where('course_id', $request->course_id)
+            ->whereIn('status', ['verified', 'confirmed'])
+            ->get();
+
         if ($applications->isEmpty()) {
-            return redirect()->back()->with('error', 'No verified or paid candidates available to shortlist.');
+            return redirect()->back()->with('error', 'No verified candidates available for this course.');
         }
 
         $shortlistedCount = 0;
 
         foreach ($applications as $app) {
-            $threshold = $app->quotaCategory->merit_threshold ?? 60;
             $tenth = floatval($app->tenth_percentage);
             $twelfth = floatval($app->twelfth_percentage);
-
-            // Calculate a score out of 100
             $score = ($tenth + $twelfth) / 2;
-            $app->merit_score = $score;
 
-            // Shortlist only if average score >= threshold
-            if ($score >= $threshold) {
-                $app->status = 'merit'; // map merit to Shortlisted
+            if ($score >= $request->cutoff_score) {
+                $app->status = 'merit';
                 $shortlistedCount++;
+                $app->save();
             }
-
-            $app->save();
         }
 
-        return redirect()->back()->with('success', "Auto-Merit generated. $shortlistedCount candidates shortlisted based on their respective category thresholds.");
+        return redirect()->back()->with('success', "Merit list generated. $shortlistedCount candidates shortlisted based on cutoff of {$request->cutoff_score}%.");
     }
 
     public function publish()

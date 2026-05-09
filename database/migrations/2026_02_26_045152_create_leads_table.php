@@ -11,16 +11,18 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('leads', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email');
-            $table->string('phone');
-            $table->string('source'); // Website, Social Media, Referral
-            $table->foreignId('course_id')->constrained();
-            $table->foreignId('assigned_to')->nullable()->constrained('users');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('leads')) {
+            Schema::create('leads', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->string('email');
+                $table->string('phone');
+                $table->string('source'); // Website, Social Media, Referral
+                $table->foreignId('course_id')->constrained();
+                $table->foreignId('assigned_to')->nullable()->constrained('users');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

@@ -279,11 +279,7 @@
                         </div>
                     @endif
 
-                    <!-- Tabs -->
-                    <div class="tabs d-flex p-1 rounded-3 mb-3">
-                        <div class="tab active" id="signinTab">Sign In</div>
-                        <div class="tab" id="signupTab">Sign Up</div>
-                    </div>
+
                     {{-- Form --}}
                     <form id="signinForm" action="{{ route('admin.login.submit') }}" method="POST">
                         @csrf
@@ -313,45 +309,7 @@
 
                     </form>
 
-                    <form id="signupForm" action="{{ route('admin.signup.submit') }}" method="POST"
-                        style="display:none;">
-                        @csrf
 
-                        <div class="mb-3">
-                            <label class="muted">Full Name</label>
-                            <input type="text" name="name" class="form-control"
-                                placeholder="Enter your full name">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="muted">Email Address</label>
-                            <input type="email" name="email" class="form-control" placeholder="Enter your email">
-                        </div>
-
-                        <div class="mb-2 position-relative">
-                            <label class="muted">Password</label>
-
-                            <input type="password" name="password" id="signupPassword" class="form-control pe-5"
-                                placeholder="Enter your password">
-
-                            <span id="toggleSignupPassword" class="bi bi-eye"
-                                style="position:absolute; right:15px; top:38px; cursor:pointer; color:#94a3b8;">
-                            </span>
-                        </div>
-
-                        <div class="mb-2 position-relative">
-                            <label class="muted">Confirm Password</label>
-                            <input type="password" name="password_confirmation" id="signupConfirmPassword"
-                                class="form-control pe-5" placeholder="Confirm your password">
-
-                            <span id="toggleSignupConfirmPassword" class="bi bi-eye"
-                                style="position:absolute; right:15px; top:38px; cursor:pointer; color:#94a3b8;">
-                            </span>
-                        </div>
-
-                        <button class="btn btn-primary w-100 mb-3">Create Account →</button>
-
-                    </form>
                 </div>
             </div>
 
@@ -359,41 +317,10 @@
     </div>
     </div>
     <script>
-        const signinTab = document.getElementById("signinTab");
-        const signupTab = document.getElementById("signupTab");
-
-        const signinForm = document.getElementById("signinForm");
-        const signupForm = document.getElementById("signupForm");
-
         const formTitle = document.getElementById("formTitle");
         const formSubtitle = document.getElementById("formSubtitle");
         const togglePassword = document.getElementById("togglePassword");
         const passwordField = document.getElementById("password");
-        const passwordField2 = document.getElementById("password_confirmation");
-
-        signinTab.addEventListener("click", () => {
-
-            signinTab.classList.add("active");
-            signupTab.classList.remove("active");
-
-            signinForm.style.display = "block";
-            signupForm.style.display = "none";
-
-            formTitle.innerText = "Welcome, Admin 👋";
-            formSubtitle.innerText = "Sign in to access the Admin dashboard";
-        });
-
-        signupTab.addEventListener("click", () => {
-
-            signupTab.classList.add("active");
-            signinTab.classList.remove("active");
-
-            signupForm.style.display = "block";
-            signinForm.style.display = "none";
-
-            formTitle.innerText = "Create Account 📝";
-            formSubtitle.innerText = "Register as Administrator";
-        });
 
         function setupPasswordToggle(toggleId, inputId) {
 
@@ -415,8 +342,7 @@
 
         /* Attach toggles */
         setupPasswordToggle("togglePassword", "password"); // Signin
-        setupPasswordToggle("toggleSignupPassword", "signupPassword"); // Signup
-        setupPasswordToggle("toggleSignupConfirmPassword", "signupConfirmPassword"); // Confirm
+
     </script>
 </body>
 

@@ -647,10 +647,10 @@
         <a href="{{ route('accountant.payment_history') }}" class="nav-item">
             <i class="fa fa-clock-rotate-left"></i> Payment History
         </a>
-        <a href="#" class="nav-item">
+        <a href="{{ route('accountant.outstanding_dues') }}" class="nav-item">
             <i class="fa fa-clipboard-list"></i> Outstanding Dues
         </a>
-        <a href="#" class="nav-item">
+        <a href="{{ route('accountant.collections_analytics') }}" class="nav-item">
             <i class="fa fa-chart-pie"></i> Collections Analytics
         </a>
         
@@ -676,7 +676,6 @@
             <div class="header-tabs">
                 <a href="#" class="header-tab active">Billing & Receipts</a>
                 <a href="{{ route('accountant.exportReport') }}" class="header-tab"><i class="fa fa-file-pdf text-danger me-1"></i> Fee Report</a>
-                <a href="#" class="header-tab">Ledger</a>
             </div>
             
             <div class="header-actions">

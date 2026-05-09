@@ -132,6 +132,17 @@
             </a>
         </div>
 
+        <!-- Parent -->
+        <div class="col-md-6">
+            <a href="{{ route('parent.login') }}" class="role-card">
+                <div class="card-box text-center">
+                    <div class="role-icon">👪</div>
+                    <div class="role-title">Parent Portal</div>
+                    <div class="role-desc">Monitor student progress & LMS (Mock)</div>
+                </div>
+            </a>
+        </div>
+
     </div>
 
 </div>

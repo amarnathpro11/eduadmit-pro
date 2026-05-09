@@ -77,11 +77,20 @@ Route::prefix('admin')->group(function () {
     Route::get('/accountant/login', [AuthController::class, 'showAccountantLogin'])->name('accountant.login');
     Route::post('/accountant/login', [AuthController::class, 'login'])->name('accountant.login.submit');
 
+    // Accountant Password Reset Routes
+    Route::get('/accountant/forgot-password', [AuthController::class, 'showAccountantForgotPasswordForm'])->name('accountant.password.request');
+    Route::post('/accountant/forgot-password', [AuthController::class, 'sendAccountantResetLinkEmail'])->name('accountant.password.email');
+    Route::get('/accountant/reset-password/{token}', [AuthController::class, 'showAccountantResetPasswordForm'])->name('accountant.password.reset');
+    Route::post('/accountant/reset-password', [AuthController::class, 'resetAccountantPassword'])->name('accountant.password.update');
+
+
     Route::prefix('accountant')->middleware(['accountant'])->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\Accountant\AccountantController::class, 'index'])->name('accountant.dashboard');
         Route::get('/payment-history', [\App\Http\Controllers\Accountant\AccountantController::class, 'paymentHistory'])->name('accountant.payment_history');
         Route::get('/export-report', [\App\Http\Controllers\Accountant\AccountantController::class, 'exportReport'])->name('accountant.exportReport');
         Route::post('/billing/payment', [\App\Http\Controllers\Accountant\AccountantController::class, 'storePayment'])->name('accountant.storePayment');
+        Route::get('/outstanding-dues', [\App\Http\Controllers\Accountant\AccountantController::class, 'outstandingDues'])->name('accountant.outstanding_dues');
+        Route::get('/collections-analytics', [\App\Http\Controllers\Accountant\AccountantController::class, 'collectionsAnalytics'])->name('accountant.collections_analytics');
     });
     Route::get('/users', [UserController::class, 'index'])
         ->name('admin.users.index');
@@ -159,6 +168,9 @@ Route::prefix('admin')->group(function () {
 
     Route::post('/verification/document/{id}/reject', [VerificationController::class, 'rejectDocument'])
         ->name('admin.verification.document.reject');
+
+    Route::post('/verification/document/{id}/undo', [VerificationController::class, 'undoDocument'])
+        ->name('admin.verification.document.undo');
 
     Route::get('/merit-list', [MeritListController::class, 'index'])
         ->name('admin.merit_list.index');
@@ -251,6 +263,13 @@ Route::prefix('student')->group(function () {
 Route::prefix('counselor')->group(function () {
     Route::get('/login', [\App\Http\Controllers\Counselor\AuthController::class, 'showLoginForm'])->name('counselor.login');
     Route::post('/login', [\App\Http\Controllers\Counselor\AuthController::class, 'login'])->name('counselor.login.submit');
+
+    // Password Reset Routes
+    Route::get('/forgot-password', [\App\Http\Controllers\Counselor\AuthController::class, 'showForgotPasswordForm'])->name('counselor.password.request');
+    Route::post('/forgot-password', [\App\Http\Controllers\Counselor\AuthController::class, 'sendResetLinkEmail'])->name('counselor.password.email');
+    Route::get('/reset-password/{token}', [\App\Http\Controllers\Counselor\AuthController::class, 'showResetPasswordForm'])->name('counselor.password.reset');
+    Route::post('/reset-password', [\App\Http\Controllers\Counselor\AuthController::class, 'resetPassword'])->name('counselor.password.update');
+
     
     Route::middleware(['counselor'])->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\Counselor\DashboardController::class, 'index'])->name('counselor.dashboard');
@@ -281,5 +300,28 @@ Route::prefix('counselor')->group(function () {
     });
 });
 
+// Parent Portal
+Route::prefix('parent')->group(function () {
+    Route::get('/login', [\App\Http\Controllers\Parent\AuthController::class, 'loginForm'])->name('parent.login');
+    Route::post('/login', [\App\Http\Controllers\Parent\AuthController::class, 'login'])->name('parent.login.submit');
+    Route::get('/register', [\App\Http\Controllers\Parent\AuthController::class, 'registerForm'])->name('parent.register');
+    Route::post('/register', [\App\Http\Controllers\Parent\AuthController::class, 'register'])->name('parent.register.submit');
+    Route::post('/logout', [\App\Http\Controllers\Parent\AuthController::class, 'logout'])->name('parent.logout');
+
+    Route::middleware(['auth:parent'])->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\Parent\DashboardController::class, 'index'])->name('parent.dashboard');
+        Route::get('/lms', [\App\Http\Controllers\Parent\DashboardController::class, 'lms'])->name('parent.lms');
+    });
+});
+
 // API or Public Website Endpoints
 Route::post('/api/website/leads/capture', [\App\Http\Controllers\Admin\LeadController::class, 'publicCapture'])->name('api.leads.capture');
+
+// Fallback route to serve storage files directly (bypasses the need for storage:link symlink)
+Route::get('/storage/{path}', function ($path) {
+    $filePath = storage_path('app/public/' . $path);
+    if (!file_exists($filePath)) {
+        abort(404);
+    }
+    return response()->file($filePath);
+})->where('path', '.*')->name('storage.serve');

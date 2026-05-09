@@ -11,14 +11,14 @@ class Enrollment extends Model
 
   protected $fillable = [
     'student_id',
-    'user_id',
-    'course_id',
+    'application_id',
     'enrolled_at',
+    'fee',
   ];
 
   public function application()
   {
-    return $this->belongsTo(Application::class, 'user_id', 'user_id');
+    return $this->belongsTo(Application::class);
   }
 
   public function payments()

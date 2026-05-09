@@ -11,13 +11,15 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('enrollments', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('application_id')->constrained();
-            $table->date('enrolled_at');
-            $table->decimal('fee', 10, 2);
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('enrollments')) {
+            Schema::create('enrollments', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('application_id')->constrained();
+                $table->date('enrolled_at');
+                $table->decimal('fee', 10, 2);
+                $table->timestamps();
+            });
+        }
     }
 
     /**

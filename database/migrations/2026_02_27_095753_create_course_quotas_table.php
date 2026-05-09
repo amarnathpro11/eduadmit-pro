@@ -11,21 +11,23 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('course_quotas', function (Blueprint $table) {
-            $table->id();
+        if (!Schema::hasTable('course_quotas')) {
+            Schema::create('course_quotas', function (Blueprint $table) {
+                $table->id();
 
-            $table->foreignId('course_id')
-                ->constrained()
-                ->onDelete('cascade');
+                $table->foreignId('course_id')
+                    ->constrained()
+                    ->onDelete('cascade');
 
-            $table->foreignId('quota_category_id')
-                ->constrained()
-                ->onDelete('cascade');
+                $table->foreignId('quota_category_id')
+                    ->constrained()
+                    ->onDelete('cascade');
 
-            $table->integer('reserved_seats');
+                $table->integer('reserved_seats');
 
-            $table->timestamps();
-        });
+                $table->timestamps();
+            });
+        }
     }
 
     public function down(): void

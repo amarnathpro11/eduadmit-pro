@@ -279,10 +279,10 @@
         <a href="{{ route('accountant.payment_history') }}" class="nav-item active">
             <i class="fa fa-clock-rotate-left"></i> Payment History
         </a>
-        <a href="#" class="nav-item">
+        <a href="{{ route('accountant.outstanding_dues') }}" class="nav-item">
             <i class="fa fa-clipboard-list"></i> Outstanding Dues
         </a>
-        <a href="#" class="nav-item">
+        <a href="{{ route('accountant.collections_analytics') }}" class="nav-item">
             <i class="fa fa-chart-pie"></i> Collections Analytics
         </a>
         

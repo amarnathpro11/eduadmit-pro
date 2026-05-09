@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>EduFinance Portal - Collections Analytics</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        body { font-family: 'Poppins', sans-serif; background: radial-gradient(circle at top, #0f172a, #020617); color: #e2e8f0; margin: 0; padding: 0; min-height: 100vh; }
+        .portal-layout { display: flex; min-height: 100vh; }
+        .sidebar { width: 260px; background: linear-gradient(180deg, #0f172a 0%, #020617 100%); border-right: 1px solid rgba(255,255,255,0.05); padding: 24px 16px; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; box-shadow: 4px 0 20px rgba(0,0,0,0.5); z-index: 10; }
+        .brand { display: flex; align-items: center; font-weight: 800; font-size: 1.15rem; color: #ffffff; margin-bottom: 2.5rem; text-decoration: none; padding: 0 8px; }
+        .brand-icon { width: 32px; height: 32px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 1rem; box-shadow: 0 4px 10px rgba(59,130,246,0.3); }
+        .brand-text span { color: #3b82f6; }
+        .nav-item { display: flex; align-items: center; padding: 12px 16px; color: #94a3b8; text-decoration: none; font-weight: 500; font-size: 0.9rem; border-radius: 10px; margin-bottom: 8px; transition: all 0.3s ease; }
+        .nav-item i { margin-right: 14px; font-size: 1.1rem; width: 20px; text-align: center; opacity: 0.8; }
+        .nav-item:hover { color: #ffffff; background: rgba(255,255,255,0.05); transform: translateX(4px); }
+        .nav-item.active { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #ffffff; box-shadow: 0 4px 15px rgba(59,130,246,0.3); font-weight: 600; }
+        .logout-btn { margin-top: auto; color: #ef4444; text-decoration: none; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; padding: 12px 16px; border-radius: 10px; transition: 0.2s; border: 1px solid rgba(239, 68, 68, 0.1); background: rgba(239, 68, 68, 0.05); }
+        .logout-btn:hover { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+        .main-content { flex: 1; padding: 0 40px 40px 40px; overflow-x: hidden; display: flex; flex-direction: column; }
+        .top-header { display: flex; justify-content: space-between; align-items: flex-end; padding: 24px 0 0 0; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 32px; }
+        .header-tabs { display: flex; gap: 32px; }
+        .header-tab { color: #94a3b8; text-decoration: none; font-weight: 500; font-size: 0.95rem; padding-bottom: 16px; margin-bottom: -1px; border-bottom: 3px solid transparent; transition: all 0.2s; }
+        .header-tab.active { color: #3b82f6; border-bottom-color: #3b82f6; font-weight: 600; }
+        .header-actions { display: flex; align-items: center; gap: 20px; padding-bottom: 12px; }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #3b82f6; box-shadow: 0 0 10px rgba(59,130,246,0.5); }
+        
+        .metric-card { background: linear-gradient(145deg, #1e293b, #0f172a); border-radius: 16px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); }
+        .panel { background: linear-gradient(145deg, #1e293b, #0f172a); border-radius: 18px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); padding: 24px; height: 100%; }
+        .panel-title { font-size: 1.1rem; font-weight: 600; color: #ffffff; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+        .chart-container { position: relative; height: 300px; width: 100%; }
+        .stat-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .stat-item:last-child { border-bottom: none; }
+    </style>
+</head>
+<body>
+
+<div class="portal-layout">
+    <div class="sidebar">
+        <a href="#" class="brand">
+            <div class="brand-icon"><i class="fa fa-wallet"></i></div>
+            <span class="brand-text">Edu<span>Admit</span> Pro</span>
+        </a>
+        <a href="{{ route('accountant.dashboard', ['type' => 'admission']) }}" class="nav-item">
+            <i class="fa fa-file-invoice"></i> Admission Billing
+        </a>
+        <a href="{{ route('accountant.dashboard', ['type' => 'application']) }}" class="nav-item">
+            <i class="fa fa-receipt"></i> Application Fees
+        </a>
+        <a href="{{ route('accountant.payment_history') }}" class="nav-item">
+            <i class="fa fa-clock-rotate-left"></i> Payment History
+        </a>
+        <a href="{{ route('accountant.outstanding_dues') }}" class="nav-item">
+            <i class="fa fa-clipboard-list"></i> Outstanding Dues
+        </a>
+        <a href="{{ route('accountant.collections_analytics') }}" class="nav-item active">
+            <i class="fa fa-chart-pie"></i> Collections Analytics
+        </a>
+        <form action="{{ route('admin.logout') }}" method="POST" class="mt-auto">
+            @csrf
+            <button type="submit" class="logout-btn w-100 border-0">
+                <i class="fa fa-sign-out-alt me-2"></i> Logout
+            </button>
+        </form>
+    </div>
+
+    <div class="main-content">
+        <div class="top-header">
+            <div class="header-tabs">
+                <a href="{{ route('accountant.collections_analytics') }}" class="header-tab active">Collections Analytics</a>
+            </div>
+            <div class="header-actions">
+                <div class="d-flex align-items-center">
+                    <div class="text-end me-3 d-none d-md-block">
+                        <div class="fw-bold text-white mb-0" style="font-size: 0.85rem">{{ auth()->user()->name }}</div>
+                        <div class="text-secondary" style="font-size: 0.7rem">Accountant Portal</div>
+                    </div>
+                    <img src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&background=3b82f6&color=fff" class="user-avatar">
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="metric-card">
+                    <div class="text-secondary small fw-bold mb-2">TOTAL REVENUE COLLECTED</div>
+                    <h2 class="text-success fw-bold mb-0">₹{{ number_format($totalCollected, 2) }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-lg-8">
+                <div class="panel">
+                    <h5 class="panel-title"><i class="fa fa-chart-line text-primary"></i> Last 7 Days Collection</h5>
+                    <div class="chart-container">
+                        <canvas id="dailyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="panel">
+                    <h5 class="panel-title"><i class="fa fa-chart-pie text-warning"></i> Collection by Mode</h5>
+                    <div class="chart-container" style="height: 200px;">
+                        <canvas id="modeChart"></canvas>
+                    </div>
+                    <div class="mt-4">
+                        @foreach($byMode as $label => $amt)
+                        <div class="stat-item">
+                            <span class="text-secondary">{{ $label }}</span>
+                            <span class="fw-bold">₹{{ number_format($amt, 2) }}</span>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-12">
+                <div class="panel">
+                    <h5 class="panel-title"><i class="fa fa-layer-group text-info"></i> Revenue by Type</h5>
+                    <div class="row">
+                        @foreach($byType as $label => $amt)
+                        <div class="col-md-4">
+                            <div class="p-4" style="background: rgba(255,255,255,0.03); border-radius: 12px;">
+                                <div class="text-secondary small mb-2 text-uppercase">{{ $label }}</div>
+                                <h4 class="mb-0 text-white">₹{{ number_format($amt, 2) }}</h4>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Daily Chart
+    const dailyCtx = document.getElementById('dailyChart').getContext('2d');
+    new Chart(dailyCtx, {
+        type: 'line',
+        data: {
+            labels: {!! json_encode(array_keys($dailyCollections)) !!},
+            datasets: [{
+                label: 'Revenue (₹)',
+                data: {!! json_encode(array_values($dailyCollections)) !!},
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+            }
+        }
+    });
+
+    // Mode Chart
+    const modeCtx = document.getElementById('modeChart').getContext('2d');
+    new Chart(modeCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {!! json_encode(array_keys($byMode)) !!},
+            datasets: [{
+                data: {!! json_encode(array_values($byMode)) !!},
+                backgroundColor: ['#3b82f6', '#10b981', '#f59e0b'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'right', labels: { color: '#e2e8f0' } }
+            },
+            cutout: '70%'
+        }
+    });
+</script>
+</body>
+</html>

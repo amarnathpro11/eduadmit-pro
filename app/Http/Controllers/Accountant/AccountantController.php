@@ -172,4 +172,82 @@ class AccountantController extends Controller
 
         return view('accountant.payment_history', compact('payments'));
     }
+
+    public function outstandingDues(Request $request)
+    {
+        $applications = Application::with(['course', 'payments', 'user'])->get();
+        $outstandingList = collect();
+        $totalOutstanding = 0;
+
+        foreach ($applications as $app) {
+            $admExpected = $app->course ? ($app->course->admission_fee + ($app->course->lab_fee ?? 0) + ($app->course->library_fee ?? 0)) : 0;
+            $appExpected = $app->course ? ($app->course->application_fee ?? 700) : 700;
+
+            $paidAdm = $app->payments->where('status', 'success')->where('payment_type', 'admission')->sum('amount');
+            $paidApp = $app->payments->where('status', 'success')->where('payment_type', 'application')->sum('amount');
+
+            $untagged = $app->payments->where('status', 'success')->where('payment_type', null);
+            foreach($untagged as $p) {
+                if ($p->amount == $appExpected || $p->amount < $appExpected + 100) {
+                    $paidApp += $p->amount;
+                } elseif ($p->amount == $admExpected || $p->amount > $admExpected - 100) {
+                    $paidAdm += $p->amount;
+                }
+            }
+
+            $pendingAdm = $admExpected - $paidAdm;
+            $pendingApp = $appExpected - $paidApp;
+
+            if (!in_array($app->status, ['selected', 'confirmed'])) {
+                $pendingAdm = 0;
+            }
+
+            $totalPending = max(0, $pendingAdm) + max(0, $pendingApp);
+
+            if ($totalPending > 0) {
+                $totalOutstanding += $totalPending;
+                $outstandingList->push((object)[
+                    'application_no' => $app->application_no ?? 'APP-'.$app->id,
+                    'name' => trim($app->first_name . ' ' . $app->last_name),
+                    'course_name' => $app->course ? $app->course->name : 'N/A',
+                    'pending_application' => max(0, $pendingApp),
+                    'pending_admission' => max(0, $pendingAdm),
+                    'total_pending' => $totalPending,
+                    'contact' => $app->phone ?? ($app->user->phone ?? 'N/A'),
+                ]);
+            }
+        }
+
+        return view('accountant.outstanding_dues', compact('outstandingList', 'totalOutstanding'));
+    }
+
+    public function collectionsAnalytics()
+    {
+        $payments = Payment::where('status', 'success')->get();
+
+        $totalCollected = $payments->sum('amount');
+        
+        $byType = [
+            'Admission' => $payments->where('payment_type', 'admission')->sum('amount'),
+            'Application' => $payments->where('payment_type', 'application')->sum('amount'),
+            'Untagged' => $payments->where('payment_type', null)->sum('amount'),
+        ];
+
+        $byMode = [
+            'UPI/Online' => $payments->filter(function($p) { return in_array($p->payment_mode, ['UPI', null, 'online']); })->sum('amount'),
+            'Cash' => $payments->where('payment_mode', 'Cash')->sum('amount'),
+            'Bank Transfer' => $payments->where('payment_mode', 'Bank Transfer')->sum('amount'),
+        ];
+
+        // Daily collections for the last 7 days
+        $dailyCollections = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $date = Carbon::today()->subDays($i);
+            $dailyCollections[$date->format('M d')] = $payments->filter(function($p) use ($date) {
+                return Carbon::parse($p->created_at)->isSameDay($date);
+            })->sum('amount');
+        }
+
+        return view('accountant.collections_analytics', compact('totalCollected', 'byType', 'byMode', 'dailyCollections'));
+    }
 }

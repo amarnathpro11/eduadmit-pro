@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('applications', function (Blueprint $table) {
-            $table->decimal('merit_score', 5, 2)->nullable();
+            if (!Schema::hasColumn('applications', 'merit_score')) {
+                $table->decimal('merit_score', 5, 2)->nullable();
+            }
         });
     }
 

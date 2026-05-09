@@ -63,10 +63,11 @@ class FinalAdmissionController extends Controller
         $studentId = $courseCode . 'STU' . date('Y') . strtoupper(\Illuminate\Support\Str::random(4));
 
         \App\Models\Enrollment::updateOrCreate(
-            ['user_id' => $application->user_id, 'course_id' => $application->course_id],
+            ['application_id' => $application->id],
             [
                 'student_id' => $studentId,
-                'enrolled_at' => now()
+                'enrolled_at' => now(),
+                'fee' => $application->course->admission_fee ?? 0
             ]
         );
 

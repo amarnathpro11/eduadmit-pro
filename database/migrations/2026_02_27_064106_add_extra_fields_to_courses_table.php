@@ -12,10 +12,18 @@ return new class extends Migration
     public function up()
     {
         Schema::table('courses', function (Blueprint $table) {
-            $table->string('level')->nullable(); // UG / PG / PhD
-            $table->text('description')->nullable();
-            $table->integer('credits')->nullable();
-            $table->integer('semester_count')->nullable();
+            if (!Schema::hasColumn('courses', 'level')) {
+                $table->string('level')->nullable();
+            }
+            if (!Schema::hasColumn('courses', 'description')) {
+                $table->text('description')->nullable();
+            }
+            if (!Schema::hasColumn('courses', 'credits')) {
+                $table->integer('credits')->nullable();
+            }
+            if (!Schema::hasColumn('courses', 'semester_count')) {
+                $table->integer('semester_count')->nullable();
+            }
         });
     }
 

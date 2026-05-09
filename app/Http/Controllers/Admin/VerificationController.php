@@ -74,6 +74,20 @@ class VerificationController extends Controller
         ])->with('error', 'Document rejected.');
     }
 
+    public function undoDocument($id)
+    {
+        $document = StudentDocument::findOrFail($id);
+        $document->status = 'pending';
+        $document->save();
+
+        $this->updateApplicationStatus($document->application_id);
+
+        return redirect()->route('admin.verification.index', [
+            'status' => 'pending',
+            'app_id' => $document->application_id
+        ])->with('success', 'Document status reversed to pending.');
+    }
+
     private function updateApplicationStatus($appId)
     {
         $app = Application::with('documents')->findOrFail($appId);

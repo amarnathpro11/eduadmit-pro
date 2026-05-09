@@ -35,4 +35,19 @@ class Lead extends Model
   {
     return $this->hasMany(Application::class);
   }
+
+  public function calculateScore()
+  {
+    $score = 10; // Base score
+    
+    if ($this->phone) $score += 30;
+    if ($this->email) $score += 20;
+    if ($this->source == 'Website') $score += 20;
+    if ($this->source == 'Campaign') $score += 30;
+    
+    if ($this->status == 'Interested') $score += 20;
+    if ($this->status == 'Converted') $score = 100;
+    
+    return min(100, $score);
+  }
 }

@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use App\Mail\AdminResetPasswordMail;
+use App\Mail\AccountantResetPasswordMail;
 
 
 class AuthController extends Controller
@@ -58,12 +59,20 @@ class AuthController extends Controller
 
     public function signup(Request $request)
     {
+        // Edge Case: Prevent multiple admins from registering publicly.
+        $adminRoleId = Role::where("name", "admin")->value('id');
+        $adminExists = User::where('role_id', $adminRoleId)->exists();
+
+        if ($adminExists) {
+            return redirect()->route('admin.login')->with('error', 'Administrator account already exists. Registration disabled.');
+        }
+
         $request->validate([
             "name" => "required",
             "email" => "required",
             "password" => "required",
         ]);
-        $adminRoleId = Role::where("name", "admin")->value('id');
+
         User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -75,7 +84,8 @@ class AuthController extends Controller
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-        return redirect()->route('admin.login')->with('success', 'Admin account created.Please Login.');
+
+        return redirect()->route('admin.login')->with('success', 'Admin account created. Please Login.');
     }
 
     public function logout(Request $request)
@@ -131,5 +141,50 @@ class AuthController extends Controller
         ]);
 
         return redirect()->route('admin.login')->with('success', 'Password updated successfully. Please login.');
+    }
+
+    // Accountant Password Reset
+    public function showAccountantForgotPasswordForm()
+    {
+        return view('accountant.auth.forgot-password');
+    }
+
+    public function sendAccountantResetLinkEmail(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+
+        $user = User::where('email', $request->email)->first();
+        if (!$user || !$user->role || $user->role->name !== 'accountant') {
+            return back()->withErrors(['email' => 'Accountant account not found.']);
+        }
+
+        $token = Str::random(60);
+
+        Mail::to($user->email)->send(new AccountantResetPasswordMail($token, $user->email));
+
+        return back()->with('success', 'Accountant password reset link sent to your email.');
+    }
+
+    public function showAccountantResetPasswordForm(Request $request, $token)
+    {
+        return view('accountant.auth.reset-password', ['token' => $token, 'email' => $request->email]);
+    }
+
+    public function resetAccountantPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|min:8|confirmed',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+        if (!$user) return back()->withErrors(['email' => 'User not found.']);
+
+        $user->update([
+            'password' => Hash::make($request->password)
+        ]);
+
+        return redirect()->route('accountant.login')->with('success', 'Password updated successfully. Please login.');
     }
 }

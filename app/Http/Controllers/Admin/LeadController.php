@@ -60,7 +60,7 @@ class LeadController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'nullable|email',
-            'phone' => 'required|string',
+            'phone' => 'required|regex:/^[0-9]{10}$/',
             'source' => 'required|string',
             'course_interested' => 'required|exists:courses,id',
             'assigned_to' => 'nullable|exists:users,id',
@@ -101,16 +101,17 @@ class LeadController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:leads,email',
-            'phone' => 'required|string',
+            'phone' => 'required|regex:/^[0-9]{10}$/',
             'course_interested' => 'required|exists:courses,id',
             'source' => 'nullable|string'
         ]);
 
         $validated['source'] = $validated['source'] ?? 'Website';
         $validated['status'] = 'New';
-        $validated['lead_score'] = 10; // Default score
 
         $lead = Lead::create($validated);
+        $lead->lead_score = $lead->calculateScore();
+        $lead->save();
 
         return response()->json([
             'success' => true,

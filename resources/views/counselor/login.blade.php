@@ -188,8 +188,16 @@
                                 <input type="email" name="email" class="form-control" required>
                             </div>
                             <div class="mb-4">
-                                <label class="form-label">Password</label>
-                                <input type="password" name="password" class="form-control" required>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label class="form-label mb-0">Password</label>
+                                    <a href="{{ route('counselor.password.request') }}" class="text-success text-decoration-none" style="font-size: 0.8rem; font-weight: 600;">Forgot Password?</a>
+                                </div>
+                                <div class="position-relative">
+                                    <input type="password" name="password" id="passwordInput" class="form-control" required>
+                                    <span class="position-absolute end-0 top-50 translate-middle-y pe-3" style="cursor: pointer;" onclick="togglePassword()">
+                                        <i class="fa fa-eye-slash text-muted" id="toggleIcon"></i>
+                                    </span>
+                                </div>
                             </div>
                             <button class="btn btn-login shadow-sm">Log In as Counselor</button>
                         </form>
@@ -220,6 +228,22 @@
         </div>
     </div>
 
+    <script>
+        function togglePassword() {
+            const passwordInput = document.getElementById('passwordInput');
+            const toggleIcon = document.getElementById('toggleIcon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            }
+        }
+    </script>
 </body>
 
 </html>

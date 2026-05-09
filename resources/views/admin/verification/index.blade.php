@@ -276,6 +276,13 @@
                                 <i class="fa fa-check me-2"></i> Approve
                             </button>
                         </form>
+                        <form id="undo-form" method="POST" action="" class="w-100 d-none">
+                            @csrf
+                            <button type="submit" class="btn btn-outline-warning w-100 py-2 fw-bold"
+                                style="border-radius: 10px;">
+                                <i class="fa fa-undo me-2"></i> Undo
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -369,6 +376,7 @@
                             '<div class="text-muted"><i class="fa fa-eye-slash mb-2 fs-3"></i><br>No document available</div>';
                         document.getElementById('approve-form').classList.add('d-none');
                         document.getElementById('reject-form').classList.add('d-none');
+                        document.getElementById('undo-form').classList.add('d-none');
                     }
                 })
                 .catch(err => {
@@ -389,8 +397,17 @@
             // Update forms for this specific document
             document.getElementById('approve-form').action = `/admin/verification/document/${doc.id}/approve`;
             document.getElementById('reject-form').action = `/admin/verification/document/${doc.id}/reject`;
-            document.getElementById('approve-form').classList.remove('d-none');
-            document.getElementById('reject-form').classList.remove('d-none');
+            document.getElementById('undo-form').action = `/admin/verification/document/${doc.id}/undo`;
+
+            if (doc.status === 'verified' || doc.status === 'rejected') {
+                document.getElementById('approve-form').classList.add('d-none');
+                document.getElementById('reject-form').classList.add('d-none');
+                document.getElementById('undo-form').classList.remove('d-none');
+            } else {
+                document.getElementById('approve-form').classList.remove('d-none');
+                document.getElementById('reject-form').classList.remove('d-none');
+                document.getElementById('undo-form').classList.add('d-none');
+            }
 
             const typeNames = {
                 '10th': '10th Marksheet',

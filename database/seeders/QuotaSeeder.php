@@ -15,10 +15,10 @@ class QuotaSeeder extends Seeder
     {
         //
         DB::table('quota_categories')->insert([
-            ['name' => 'General', 'code' => 'GEN', 'percentage' => 50.00],
-            ['name' => 'SC/ST', 'code' => 'SCST', 'percentage' => 22.50],
-            ['name' => 'OBC', 'code' => 'OBC', 'percentage' => 27.00],
-            ['name' => 'Sports', 'code' => 'SP', 'percentage' => 0.50],
+            ['name' => 'General', 'code' => 'GEN', 'percentage' => 50.00, 'merit_threshold' => 60.00],
+            ['name' => 'SC/ST', 'code' => 'SCST', 'percentage' => 22.50, 'merit_threshold' => 45.00],
+            ['name' => 'OBC', 'code' => 'OBC', 'percentage' => 27.00, 'merit_threshold' => 55.00],
+            ['name' => 'Sports', 'code' => 'SP', 'percentage' => 0.50, 'merit_threshold' => 40.00],
         ]);
     }
 }

@@ -123,14 +123,12 @@
                 </button>
             </form>
 
-            <form action="{{ route('admin.merit_list.generate') }}" method="POST">
-                @csrf
-                <button type="submit" class="btn btn-dark d-flex align-items-center gap-2"
-                    style="border: 1px solid rgba(255,255,255,0.1); background: #0f172a; border-radius: 12px; padding: 10px 20px;">
-                    <i class="fa fa-magic text-white"></i>
-                    <span class="text-white fw-semibold">Generate Auto-Merit</span>
-                </button>
-            </form>
+            <button type="button" class="btn btn-dark d-flex align-items-center gap-2"
+                data-bs-toggle="modal" data-bs-target="#generateMeritModal"
+                style="border: 1px solid rgba(255,255,255,0.1); background: #0f172a; border-radius: 12px; padding: 10px 20px;">
+                <i class="fa fa-magic text-white"></i>
+                <span class="text-white fw-semibold">Generate List</span>
+            </button>
 
             <a href="{{ route('admin.merit_list.mail_preview') }}" target="_blank"
                 class="btn btn-outline-info d-flex align-items-center gap-2"
@@ -247,7 +245,7 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td><span style="font-size: 0.85rem;">General</span></td>
+                                    <td><span style="font-size: 0.85rem;">{{ $app->quotaCategory->name ?? 'General' }}</span></td>
                                     @php
                                         $calculatedScore =
                                             $app->merit_score > 0
@@ -387,7 +385,7 @@
                         <div style="font-size: 0.75rem; color: rgba(255,255,255,0.5);">
                             {{ $total - $filled }} seats remaining &middot;
                             @if ($statusText != 'Closed')
-                                <a href="{{ route('admin.departments.show', $course->department_id) }}#course-{{ $course->id }}"
+                                <a href="{{ $course->department_id ? route('admin.departments.show', $course->department_id) : route('admin.departments.index') }}#course-{{ $course->id }}"
                                     style="color: {{ $statusColor }}; text-decoration: none;"
                                     onmouseover="this.style.textDecoration='underline'"
                                     onmouseout="this.style.textDecoration='none'">
@@ -532,4 +530,40 @@
                 });
         }
     </script>
+
+    <!-- Generate Merit List Modal -->
+    <div class="modal fade" id="generateMeritModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content"
+                style="background: #1e293b; color: white; border: 1px solid rgba(255,255,255,0.1);">
+                <div class="modal-header border-bottom border-secondary border-opacity-25">
+                    <h5 class="modal-title fw-bold">Generate Merit List</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <form action="{{ route('admin.merit_list.generate') }}" method="POST">
+                    @csrf
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label text-white-50">Select Course</label>
+                            <select class="form-select bg-dark text-white border-secondary" name="course_id" required>
+                                <option value="">-- Select Course --</option>
+                                @foreach($courses as $course)
+                                    <option value="{{ $course->id }}">{{ $course->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-white-50">Cutoff Percentage (%)</label>
+                            <input type="number" step="0.01" class="form-control bg-dark text-white border-secondary" name="cutoff_score" placeholder="e.g. 85" required min="0" max="100">
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top border-secondary border-opacity-25 p-3">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Generate List</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection

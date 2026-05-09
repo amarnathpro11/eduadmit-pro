@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\LeadCommunicationMail;
 use App\Mail\StudentWelcomeMail;
+use App\Services\LeadScoringService;
 
 class LeadController extends Controller
 {
@@ -143,22 +144,22 @@ class LeadController extends Controller
             'message' => $validated['message']
         ]);
 
+        $scoringService = app(LeadScoringService::class);
+
         if (!empty($validated['status_update'])) {
-            $oldStatus = $lead->status;
             $lead->status = $validated['status_update'];
-            
-            // Score adjustments based on status
-            if ($lead->status == 'Interested' && $lead->lead_score < 50) $lead->lead_score = 50;
-            if ($lead->status == 'Converted') $lead->lead_score = 100;
-            if ($lead->status == 'Lost') $lead->lead_score = 0;
-            
-            $lead->save();
-        } else {
-            // General interaction increases score slightly if not already very high
-            if ($lead->lead_score < 70) {
-                $lead->increment('lead_score', 5);
-            }
         }
+
+        // Calculate score using the new service
+        $lead->lead_score = $scoringService->calculateScore($lead);
+
+        // Apply sentiment analysis if message is present
+        if (!empty($validated['message'])) {
+            $lead->lead_score += $scoringService->analyzeSentiment($validated['message']);
+            $lead->lead_score = max(0, min(100, $lead->lead_score));
+        }
+
+        $lead->save();
 
         return back()->with('success', 'Note saved successfully.');
     }
@@ -168,17 +169,11 @@ class LeadController extends Controller
         if ($lead->assigned_to !== Auth::id()) abort(403);
         $request->validate(['status' => 'required|string']);
         
-        $newStatus = $request->status;
-        $score = $lead->lead_score;
-
-        if ($newStatus == 'Interested' && $score < 50) $score = 50;
-        if ($newStatus == 'Converted') $score = 100;
-        if ($newStatus == 'Lost') $score = 0;
-
-        $lead->update([
-            'status' => $newStatus,
-            'lead_score' => $score
-        ]);
+        $lead->status = $request->status;
+        
+        $scoringService = app(LeadScoringService::class);
+        $lead->lead_score = $scoringService->calculateScore($lead);
+        $lead->save();
         
         return back()->with('success', 'Status updated.');
     }

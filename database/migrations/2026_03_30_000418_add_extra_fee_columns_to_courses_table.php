@@ -12,8 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('courses', function (Blueprint $table) {
-            $table->decimal('lab_fee', 10, 2)->default(0.00)->after('admission_fee');
-            $table->decimal('library_fee', 10, 2)->default(0.00)->after('lab_fee');
+            if (!Schema::hasColumn('courses', 'lab_fee')) {
+                $table->decimal('lab_fee', 10, 2)->default(0.00)->after('admission_fee');
+            }
+            if (!Schema::hasColumn('courses', 'library_fee')) {
+                $table->decimal('library_fee', 10, 2)->default(0.00)->after('lab_fee');
+            }
         });
     }
 

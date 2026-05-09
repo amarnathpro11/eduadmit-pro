@@ -244,7 +244,7 @@
                                 <input type="checkbox" name="remember" id="remember">
                                 <span class="muted">Remember me</span>
                             </div>
-                            <a href="{{ route('admin.password.request') }}">Forget Password?</a>
+                            <a href="{{ route('accountant.password.request') }}">Forget Password?</a>
                         </div>
                         <button class="btn btn-success w-100">Sign In &rarr;</button>
 

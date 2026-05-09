@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('leads', function (Blueprint $table) {
             $table->string('status')->default('New')->after('assigned_to');
-            $table->integer('score')->default(0)->after('status');
+            $table->integer('lead_score')->default(0)->after('status');
         });
     }
 
@@ -23,7 +23,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('leads', function (Blueprint $table) {
-            $table->dropColumn(['status', 'score']);
+            $table->dropColumn(['status', 'lead_score']);
         });
     }
 };

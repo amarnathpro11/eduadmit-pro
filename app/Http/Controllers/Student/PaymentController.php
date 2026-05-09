@@ -36,6 +36,10 @@ class PaymentController extends Controller
     $user = Auth::guard('student')->user();
     $application = Application::where('user_id', $user->id)->with('course')->first();
 
+    if (!$application) {
+      return redirect()->route('student.dashboard')->with('error', 'Please fill the application form first before proceeding to payments.');
+    }
+
     $query = Payment::where('user_id', $user->id);
 
     if ($request->filled('status')) {

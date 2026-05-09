@@ -11,14 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('quota_categories', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('code')->unique();
-            $table->decimal('percentage', 5, 2);
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('quota_categories')) {
+            Schema::create('quota_categories', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->string('code')->unique();
+                $table->decimal('percentage', 5, 2);
+                $table->boolean('is_active')->default(true);
+                $table->timestamps();
+            });
+        }
     }
 
     public function down(): void

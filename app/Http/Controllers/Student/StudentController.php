@@ -31,7 +31,7 @@ class StudentController extends Controller
       'first_name' => 'required|string|max:255',
       'last_name' => 'required|string|max:255',
       'dob' => 'required|date',
-      'mobile' => 'required|string|max:20',
+      'mobile' => 'required|regex:/^[0-9]{10}$/',
       'course_id' => 'required|exists:courses,id',
       'tenth_percentage' => 'required|numeric|min:0|max:100',
       'twelfth_percentage' => 'required|numeric|min:0|max:100',
@@ -86,11 +86,7 @@ class StudentController extends Controller
     $application = Application::where('user_id', $user->id)->first();
 
     if (!$application) {
-      // Create a draft application if none exists to avoid errors
-      $application = Application::create([
-        'user_id' => $user->id,
-        'status' => 'draft'
-      ]);
+      return redirect()->route('student.dashboard')->with('error', 'Please fill the application form first before uploading documents.');
     }
 
     $documents = StudentDocument::where('user_id', $user->id)->get()->keyBy('document_type');

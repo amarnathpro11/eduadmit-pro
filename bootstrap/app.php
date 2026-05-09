@@ -11,6 +11,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->redirectTo(function ($request) {
+            if ($request->is('parent/*') || $request->is('parent')) {
+                return route('parent.login');
+            }
+            if ($request->is('student/*') || $request->is('student')) {
+                return route('student.login');
+            }
+            return route('portals');
+        });
+
         $middleware->alias([
             'accountant' => \App\Http\Middleware\AccountantMiddleware::class,
             'admin.auth' => \App\Http\Middleware\AdminMiddleware::class,

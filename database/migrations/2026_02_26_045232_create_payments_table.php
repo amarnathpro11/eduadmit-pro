@@ -11,19 +11,21 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('payments', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('enrollment_id')->nullable()->constrained();
-            $table->decimal('amount', 10, 2);
-            $table->string('payment_mode')->nullable(); // UPI, Cash, Card
-            $table->date('payment_date')->nullable();
-            $table->string('type')->nullable(); // application_fee / admission_fee
-            $table->string('status')->default('pending');
-            $table->string('payment_method')->nullable();
-            $table->string('transaction_id')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('payments')) {
+            Schema::create('payments', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained()->onDelete('cascade');
+                $table->foreignId('enrollment_id')->nullable()->constrained();
+                $table->decimal('amount', 10, 2);
+                $table->string('payment_mode')->nullable(); // UPI, Cash, Card
+                $table->date('payment_date')->nullable();
+                $table->string('type')->nullable(); // application_fee / admission_fee
+                $table->string('status')->default('pending');
+                $table->string('payment_method')->nullable();
+                $table->string('transaction_id')->nullable();
+                $table->timestamps();
+            });
+        }
     }
     /**
      * Reverse the migrations.

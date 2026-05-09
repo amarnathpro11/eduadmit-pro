@@ -43,7 +43,7 @@ class Application extends Model
 
   public function enrollment()
   {
-    return $this->hasOne(Enrollment::class, 'user_id', 'user_id');
+    return $this->hasOne(Enrollment::class);
   }
 
   public function user()

@@ -101,14 +101,20 @@ class DashboardController extends Controller
         $totalEnrollments = Enrollment::count();
 
         $recentApplications = Application::with('course', 'user')->latest()->take(10)->get();
+        $recentLeads = Lead::latest()->take(10)->get();
+        $recentPayments = Payment::with('user')->latest()->take(10)->get();
 
         $data = [
+            'type' => 'System Report',
+            'reportTitle' => 'Dashboard Summary',
+            'date' => date('d M Y'),
             'totalLeads' => $totalLeads,
             'totalApplications' => $totalApplications,
             'totalPayments' => $totalPayments,
             'totalEnrollments' => $totalEnrollments,
             'recentApplications' => $recentApplications,
-            'date' => date('d M Y')
+            'recentLeads' => $recentLeads,
+            'recentPayments' => $recentPayments,
         ];
 
         $pdf = Pdf::loadView('admin.reports.dashboard_summary_pdf', $data);
