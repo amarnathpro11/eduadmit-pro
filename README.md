@@ -2,34 +2,37 @@
 
 EduAdmit Pro is a modern, comprehensive web application designed to streamline the college admission process, from initial lead capture to final student enrollment. Built with **Laravel 11**, **Bootstrap 5** it provides a seamless experience for both administrators and students.
 
-## 🚀 Key Features
+## 🚀 System Modules
 
-### 🏢 Administrative Powerhouse
+### 👑 Admin Module
+- **Central Dashboard**: Real-time analytics, stat cards, and trend visualizations for leads and revenue.
+- **Lead Management**: Track, assign, and follow up with prospective students with algorithm-based scoring.
+- **Student Verification**: Review and verify student documents (10th/12th marksheets).
+- **Manual Merit List**: Generate merit lists per course with manual cutoff control.
+- **Academic Management**: Manage departments, courses, and fee structures.
 
-- **Lead Lifecycle Management**: Track, assign, and follow up with prospective students through a dynamic lead pipeline.
-- **Intelligent Lead Assignment**: Distribute leads across departments and counselors efficiently.
-- **Admin Dashboard**: Real-time analytics, stat cards, and trend visualizations for leads, applications, and revenue.
-- **Student Verification**: A dedicated module for reviewing and verifying student documents.
-- **Audit Logging**: Comprehensive tracking of all administrative actions for security and transparency.
-- **Dynamic Reporting**: Generate custom PDF and Excel reports for leads, enrollments, and payments.
-- **Academic Management**: Easily manage departments, courses, and fee structures.
-- **Manual Merit List Generation**: Generate merit lists per course with manual cutoff control.
-- **Algorithm-Based Lead Scoring**: Automatically calculate lead scores based on profile completeness and source.
+### 📞 Counselor Module
+- **Assigned Leads**: View and manage leads assigned to them.
+- **Follow-ups**: Schedule and track follow-up communications.
+- **Status Tracking**: Update lead status (New, Interested, Converted, Lost).
 
-### 🎓 Student Experience
+### 💰 Accountant Module
+- **Fee Management**: Track application and admission fees.
+- **Billing & Receipts**: Generate and export fee collection reports.
+- **Payment Tracking**: Track cash/UPI/bank transactions.
 
-- **Online Application Management**: Full form-filling for personal details, academic marks (10th & 12th %) and course selection.
-- **Self-Service Portal**: A personalized dashboard for students to track their application status in real-time.
-- **Document Management**: Securely upload and manage required admission documents (10th Marksheet, 12th Certificate, etc.).
-- **Multi-Stage Tracking**: Visual journey tracker from "Registration" to "Verified" and "Final Admission."
-- **Transactional Emails**: Password resets and offer notifications integrated via Mailtrap.
-- **Digital Receipts**: Downloadable payment receipts and application summaries in PDF format.
+### 🎓 Student Module (Applicant)
+- **Online Application**: Fill personal and academic details (10th & 12th %).
+- **Self-Service Dashboard**: Track application status in real-time.
+- **Document Upload**: Securely upload required documents.
+- **Receipt Downloads**: Download fee receipts in PDF format.
 
-### 👪 Parent & LMS Portal (New!)
+### 👪 Parent Module (New!)
+- **Parent-Student Mapping**: Securely link parent accounts to students using student password.
+- **Academic Monitoring**: View child's grades, attendance, and fee status.
 
-- **Parent-Student Mapping**: Securely link parent accounts to students using the student's password for verification.
-- **Academic Monitoring**: Parents can view their child's grades, attendance, and fee status.
-- **LMS Integration**: A dedicated view for Learning Management System records (Database-driven).
+### 📚 LMS Portal (Integration)
+- **Performance Records**: View student grades and attendance data from the database.
 
 ## ✅ Project Status: Core Modules Implemented
 
