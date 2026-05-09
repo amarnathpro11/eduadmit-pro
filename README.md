@@ -13,6 +13,8 @@ EduAdmit Pro is a modern, comprehensive web application designed to streamline t
 - **Audit Logging**: Comprehensive tracking of all administrative actions for security and transparency.
 - **Dynamic Reporting**: Generate custom PDF and Excel reports for leads, enrollments, and payments.
 - **Academic Management**: Easily manage departments, courses, and fee structures.
+- **Manual Merit List Generation**: Generate merit lists per course with manual cutoff control.
+- **Algorithm-Based Lead Scoring**: Automatically calculate lead scores based on profile completeness and source.
 
 ### 🎓 Student Experience
 
@@ -23,6 +25,12 @@ EduAdmit Pro is a modern, comprehensive web application designed to streamline t
 - **Transactional Emails**: Password resets and offer notifications integrated via Mailtrap.
 - **Digital Receipts**: Downloadable payment receipts and application summaries in PDF format.
 
+### 👪 Parent & LMS Portal (New!)
+
+- **Parent-Student Mapping**: Securely link parent accounts to students using the student's password for verification.
+- **Academic Monitoring**: Parents can view their child's grades, attendance, and fee status.
+- **LMS Integration**: A dedicated view for Learning Management System records (Database-driven).
+
 ## ✅ Project Status: Core Modules Implemented
 
 The following modules are now 100% functional and integrated:
@@ -31,9 +39,11 @@ The following modules are now 100% functional and integrated:
 | :--- | :--- |
 | **Registration** | Email-based signup, login, and secure session management. |
 | **Application** | Personal info, Academic background (marks), and Course preferences. |
-| **Admin Central** | Leads pipeline, Lead Assignment, Verification, Merit List, and Final Admission. |
+| **Admin Central** | Leads pipeline, Lead Assignment, Verification, Merit List (Manual Cutoff), and Final Admission. |
 | **System Rules** | Dynamic merit thresholds, admission categories, and seat management. |
 | **Finance** | Razorpay test integration for fee collection and automated receipts. |
+| **Parent Portal** | Student mapping, attendance, and grade tracking. |
+| **LMS View** | Display student performance records from the database. |
 
 ## 🛠️ Technology Stack
 
